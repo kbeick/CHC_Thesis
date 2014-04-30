@@ -7,21 +7,23 @@
 //
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <iostream>
-// #include <vtkDataSet.h>
-// #include <vtkImageData.h>
-// #include <vtkPNGWriter.h>
-// #include <vtkPointData.h>
-// #include <vtkPolyData.h>
-// #include <vtkPolyDataReader.h>
-// #include <vtkPoints.h>
-// #include <vtkUnsignedCharArray.h>
-// #include <vtkFloatArray.h>
-// #include <vtkCellArray.h>
+#include <vtkDataSet.h>
+#include <vtkImageData.h>
+#include <vtkPNGWriter.h>
+#include <vtkPointData.h>
+#include <vtkPolyData.h>
+#include <vtkPolyDataReader.h>
+#include <vtkPoints.h>
+#include <vtkUnsignedCharArray.h>
+#include <vtkFloatArray.h>
+#include <vtkCellArray.h>
 
 #include <cmath>
 #include <vector>
 #include <algorithm>
+#include <string>
 #include "BBox.h"
 #include "ray.h"
 #include "shading.cxx"
@@ -37,8 +39,8 @@ using std::cerr;
 using std::cout;
 using std::endl;
 
-USAGE_MSG = "USAGE: <executable> <model filename> <children per node (int)> <construction method (td or bu)> "+ \
-    "<camera pos (3 comma-sep floats)> <reflection coef (float)> <opacity (float)>\n"
+string USAGE_MSG = "USAGE: <executable> <model filename> <children per node (int)> <construction method (td or bu)>  \
+    <camera pos (3 comma-sep floats)> <reflection coef (float)> <opacity (float)>\n";
 
 
 bool PRODUCE_IMAGE = true;
@@ -48,7 +50,7 @@ int IMAGE_HEIGHT = 2000;
 LightingParameters* lp = new LightingParameters();
 
 // PARAMETERS FOR BVH
-objReader* objReader = NULL;        // Object Reader for file
+ObjReader* objReader = NULL;        // Object Reader for file
 int children_per_node = 0;          // Children per Node
 int construction_method = 0;        // TOPDOWN==1 ; BOTTOMUP==2
 double campos[3] = {0.0,0.0,0.0};   // Camera Position
@@ -56,7 +58,7 @@ double reflec = 0.0;                // Global Reflectivity
 double opacity = 0.0;               // Global Opacity
 
 // Declare our collection of Triangles
-std::vector<Triangle> Triangles(numShapes);
+// std::vector<Triangle> Triangles(numShapes);
 
 
 // ---------------------------------------------
@@ -79,26 +81,29 @@ public:
 void
 SetConstructionMethod(char* input)
 {
-    if(argv[3] == "td") construction_method = TOPDOWN;
-    else if(argv[3] == "bu") construction_method = BOTTOMUP;
-    else: throw std::invalid_argument( "construction method must be either td or bu (top down or bottom up)\n" );
+    if(strcmp(input, "td")==1) construction_method = TOPDOWN;
+    else if(strcmp(input, "bu")==1) construction_method = BOTTOMUP;
+    else throw std::invalid_argument( "construction method must be either td or bu (top down or bottom up)\n" );
 }
 void
 SetCameraPosition(char* input)
 {       
-    try:
+    try{
         std::stringstream ss(input);
         double tmp;
         int i=0;
         while (ss >> i && i<3)
         {
-            campos[i] = atof(tmp);
+            char c[1] = {(char)ss.get()};
+            campos[i] = atof(c);
             if (ss.peek() == ',')
                 ss.ignore();
+            i++;
         }
-    catch (...):
+    }catch (...){
         cerr << "camera position must be comma separated floats eg: 10,0,20\n";
         throw;
+    }
 }
 
 

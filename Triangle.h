@@ -23,22 +23,17 @@ class Triangle{
 		BBox bbox;
 		
 
-		Vec3f v1()
+		Vec3f v1() const
 		{
 			return Vec3f(X[0], Y[0], Z[0]);
 		}
-		Vec3f v2()
+		Vec3f v2() const
 		{
 			return Vec3f(X[1], Y[1], Z[1]);
 		}
-		Vec3f v3()
+		Vec3f v3() const
 		{
 			return Vec3f(X[2], Y[2], Z[2]);
-		}
-
-		Vec3f operator-(Vec3f a, Vec3f b)
-		{
-			return Vec3f(a[0]-b[0], a[1]-b[1], a[2]-b[2]);
 		}
 
 
@@ -96,8 +91,8 @@ class Triangle{
 		}
 		void setBbox()
 		{
-			bbox.min=eavlVector3(getXMin(),getYMin(),getZMin());
-			bbox.max=eavlVector3(getXMax(),getYMax(),getZMax());
+			bbox.min=Vec3f(getXMin(),getYMin(),getZMin());
+			bbox.max=Vec3f(getXMax(),getYMax(),getZMax());
 			bbox.extent=bbox.max-bbox.min;
 		}
 
@@ -105,20 +100,24 @@ class Triangle{
 		{
 		    Vec3f edge1 = v2() - v1();
 		    Vec3f edge2 = v3() - v1();
-		    Vec3f pvec = crossproduct(r.unitDir.x, r.unitDir.y, r.unitDir.z, edge2.x, edge2.y, edge2.x);
-		    float det = dot(edge1, pvec);
+		    Vec3f pvec = crossProduct(r.unitDir.x, r.unitDir.y, r.unitDir.z, edge2.x, edge2.y, edge2.x);
+		    float det = dotProduct(edge1, pvec);
 		    if (det == 0) return false;
 		    // ^Alternatively, could check if det is less than some small EPSILON
 		    float invDet = 1.0 / det;
 		    Vec3f tvec = r.source - v1();
-		    float u = dot(tvec, pvec) * invDet;
-		    if (u < 0 || u > 1) return false;
-		    Vec3f qvec = cross(tvec, edge1);
-		    float v = dot(r.dir, qvec) * invDet;
-		    if (v < 0 || u + v > 1) return false;
-		    isectData = dot(edge2, qvec) * invDet;
+		    float u = dotProduct(tvec, pvec) * invDet;
+		    if (u < 0.0 || u > 1.0) return false;
+		    Vec3f qvec = crossProduct(tvec, edge1);
+		    float v = dotProduct(r.unitDir, qvec) * invDet;
+		    if (v < 0.0 || u + v > 1.0) return false;
+		    float t = dotProduct(edge2, qvec) * invDet;
 
-		    return true;
+		    if(t > 0.0){
+		    	isectData = t;
+		    	return true;
+		    }
+		    return false;
 		}
 
 		int id;
@@ -144,36 +143,35 @@ void CreateTriangleArray(Triangle *triangles, int numTriangles, float *verts)
 		triangles[triIndex].id=triIndex;
 		triangles[triIndex].calcCentroid();
 		triangles[triIndex].setBbox();
-		
-		
 	}
 }
 
 
-void CreateTriangleList(list<Triangle> *triangles, int numTriangles, float *xVerts, float *yVerts, float *zVerts)
-{
-	for(int triIndex = 0; triIndex < numTriangles; triIndex++){
-		Triangle t;
+// void
+// CreateTriangleList(list<Triangle> *triangles, int numTriangles, float *xVerts, float *yVerts, float *zVerts)
+// {
+// 	for(int triIndex = 0; triIndex < numTriangles; triIndex++){
+// 		Triangle t;
 		
-	    t.X[0] = xVerts[triIndex*9];
-	    t.Y[0] = xVerts[triIndex*9+1];
-	    t.Z[0] = xVerts[triIndex*9+2];
+// 	    t.X[0] = xVerts[triIndex*9];
+// 	    t.Y[0] = xVerts[triIndex*9+1];
+// 	    t.Z[0] = xVerts[triIndex*9+2];
 	    
-	    t.X[1] = xVerts[triIndex*9+3];
-	    t.Y[1] = xVerts[triIndex*9+4];
-	    t.Z[1] = xVerts[triIndex*9+5];
+// 	    t.X[1] = xVerts[triIndex*9+3];
+// 	    t.Y[1] = xVerts[triIndex*9+4];
+// 	    t.Z[1] = xVerts[triIndex*9+5];
 	    
-	    t.X[2] = xVerts[triIndex*9+6];
-	    t.Y[2] = xVerts[triIndex*9+7];
-	    t.Z[2] = xVerts[triIndex*9+8];
-	    t.calcCentroid();
-	    t.setBbox();
+// 	    t.X[2] = xVerts[triIndex*9+6];
+// 	    t.Y[2] = xVerts[triIndex*9+7];
+// 	    t.Z[2] = xVerts[triIndex*9+8];
+// 	    t.calcCentroid();
+// 	    t.setBbox();
 		
-		t.id=triIndex;
+// 		t.id=triIndex;
 		
-		triangles->push_back(t);
-	}
-}
+// 		triangles->push_back(t);
+// 	}
+// }
 
 
 bool compCenterX(const Triangle & a, const Triangle & b){
