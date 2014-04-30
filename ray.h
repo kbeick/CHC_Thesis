@@ -11,11 +11,11 @@ class ray
 {
 public:
     
-    vec3f source;
-    vec3f unitDir;
+    Vec3f source;
+    Vec3f unitDir;
     
     
-    ray(vec3f start, vec3f head);
+    ray(Vec3f start, Vec3f head);
 
     void normalize();
     

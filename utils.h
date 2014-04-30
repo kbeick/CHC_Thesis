@@ -1,6 +1,8 @@
 #ifndef __UTILS_H__
 #define __UTILS_H__
 
+#include <assert.h>
+
 
 template<typename T>
 class Vec2
@@ -22,10 +24,10 @@ public:
     { os << v.x << ", " << v.y << ", " << v.z; return os; }
     
     float& operator[] (int i) {
+        assert (i>=0 && i<3);
         if( i==0 ) return x;
         else if( i==1 ) return y;
         else if( i==2 ) return z;
-        else return NULL;
     }
     
 };
@@ -34,7 +36,7 @@ typedef Vec3<float> Vec3f;
 typedef Vec3<int> Vec3i;
 typedef Vec2<float> Vec2f;
 
-Vec3f getVec3(std::ifstream &ifs) { float x, y, z; ifs >> x >> y >> z; return Vec3f(x, y, z); }
+// Vec3f getVec3(std::ifstream &ifs) { float x, y, z; ifs >> x >> y >> z; return Vec3f(x, y, z); }
 
 
 double ceil441(double f)
@@ -52,14 +54,14 @@ double dotProd(double A[], double B[])
     return A[0]*B[0] + A[1]*B[1] + A[2]*B[2];
 }
 
-double dotProd(vec3f A, vec3f B)
+double dotProd(Vec3f A, Vec3f B)
 {
     return A.x*B.x + A.y*B.y + A.z*B.z;
 }
 
-vec3f* crossproduct(float Ax, float Ay, float Az, float Bx, float By, float Bz)
+Vec3f* crossproduct(float Ax, float Ay, float Az, float Bx, float By, float Bz)
 {
-    vec3f* vector;
+    Vec3f* vector;
     vector->x = (Ay*Bz)-(By*Az);
     vector->y = -(Ax*Bz)+(Bx*Az);
     vector->z = (Ax*By)-(Ay*Bx);

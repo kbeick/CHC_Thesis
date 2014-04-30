@@ -2,26 +2,27 @@
 //  RayTracing.cxx
 //  
 //
-//  Created by Kevin on 6/3/13.
+//  Created by Kevin
 //
 //
 
 #include <stdio.h>
 #include <iostream>
-#include <vtkDataSet.h>
-#include <vtkImageData.h>
-#include <vtkPNGWriter.h>
-#include <vtkPointData.h>
-#include <vtkPolyData.h>
-#include <vtkPolyDataReader.h>
-#include <vtkPoints.h>
-#include <vtkUnsignedCharArray.h>
-#include <vtkFloatArray.h>
-#include <vtkCellArray.h>
+// #include <vtkDataSet.h>
+// #include <vtkImageData.h>
+// #include <vtkPNGWriter.h>
+// #include <vtkPointData.h>
+// #include <vtkPolyData.h>
+// #include <vtkPolyDataReader.h>
+// #include <vtkPoints.h>
+// #include <vtkUnsignedCharArray.h>
+// #include <vtkFloatArray.h>
+// #include <vtkCellArray.h>
 
 #include <cmath>
 #include <vector>
 #include <algorithm>
+#include "BBox.h"
 #include "ray.h"
 #include "shading.cxx"
 #include "Triangle.h"
@@ -40,7 +41,7 @@ USAGE_MSG = "USAGE: <executable> <model filename> <children per node (int)> <con
     "<camera pos (3 comma-sep floats)> <reflection coef (float)> <opacity (float)>\n"
 
 
-bool PRODUCE_IMAGE = false;
+bool PRODUCE_IMAGE = true;
 int IMAGE_WIDTH = 2000;
 int IMAGE_HEIGHT = 2000;
 
@@ -447,6 +448,8 @@ int main(int argc, char** argv)
     
     int flat_array_len;
     float* flat_array = bvhToFlatArray(root, flat_array_len, children_per_node);
+
+    printf("Made it this far! woo!\n");
 
     // ------------------------------- DO RAY TRACING ------------------------------
     // -----------------------------------------------------------------------------

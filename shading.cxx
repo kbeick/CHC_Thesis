@@ -19,7 +19,7 @@ struct LightingParameters
     };
 	
 	
-    vec3f lightDir; // The direction of the light source
+    Vec3f lightDir; // The direction of the light source
     double Ka;           // The coefficient for ambient lighting.
     double Kd;           // The coefficient for diffuse lighting.
     double Ks;           // The coefficient for specular lighting.
