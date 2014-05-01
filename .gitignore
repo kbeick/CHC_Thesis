@@ -1,4 +1,5 @@
-# Machine SpecificCMakeCache.txt
+# Machine Specific
+CMakeCache.txt
 CMakeFiles/
 Makefile
 cmake_install.cmake
