@@ -55,7 +55,7 @@ Triangle* tris;
 int numTriangles;
 
 // PARAMETERS FOR BVH
-ObjReader* objReader = NULL;        // Object Reader for file
+ObjReader* objReader;        // Object Reader for file
 int children_per_node = 0;          // Children per Node
 int construction_method = 0;        // TOPDOWN==1 ; BOTTOMUP==2
 double campos[3] = {0.0,0.0,0.0};   // Camera Position
@@ -395,7 +395,7 @@ int main(int argc, char** argv)
     // HANDLE AND SET BVH PARAMETERS
     if (argc != 9){ cerr << USAGE_MSG; }
     try{
-        ObjReader* objReader = new ObjReader(argv[1]);
+        objReader = new ObjReader(argv[1]);
         children_per_node = atoi( argv[2] );
         SetConstructionMethod(argv[3]);
         campos[0] = atof(argv[4]);
@@ -431,6 +431,7 @@ int main(int argc, char** argv)
 
     numTriangles = objReader->totalTriangles;
     cerr << "numTriangles is: " << numTriangles << endl;
+
     float* verts;
     float* normals;
 
