@@ -2,6 +2,7 @@
 #define __UTILS_H__
 
 #include <assert.h>
+#include <iostream>
 
 
 template<typename T>

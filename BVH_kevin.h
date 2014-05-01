@@ -1,3 +1,6 @@
+#ifndef BVH_H
+#define BVH_H
+
 #include <list>
 #include <vector>
 #include <stack>
@@ -31,7 +34,7 @@ class BVH_Node{
 		BBox bbox;
 
 		BVH_Node *parent;
-		std::vector<BVH_Node*> children(MAX_BRANCHING_FACTOR);
+		BVH_Node *children[MAX_BRANCHING_FACTOR];
 
 		Triangle* triangles;
 
@@ -137,9 +140,9 @@ int CalculateBestAxis(Triangle* triangles, int count, BBox total, int &splitPoin
 
 
 void BuildBVH_topdown(Triangle* triangles, BVH_Node *current, BVH_Node *parent,
-							static int _branching_factor, int count, int depth)
+							int count, int depth)
 {
-	branching_factor = _branching_factor;
+	// branching_factor = _branching_factor;
 	// Set initial (dummy) values
 	level++;
 
@@ -205,28 +208,28 @@ void BuildBVH_topdown(Triangle* triangles, BVH_Node *current, BVH_Node *parent,
 
 	int rightCount=count-splitPoint;
 
-	BuildBVH_topdown(triangles, prev, current, branching_factor, splitPoint, depth+1);
-	BuildBVH_topdown((triangles+splitPoint), next, current, branching_factor, rightCount, depth+1);
+	BuildBVH_topdown(triangles, prev, current, splitPoint, depth+1);
+	BuildBVH_topdown((triangles+splitPoint), next, current, rightCount, depth+1);
 
 	return;
 }
 
 void BuildBVH_bottomup(Triangle* triangles, BVH_Node *current, BVH_Node *parent,
-							int _branching_factor, int count, int depth)
+							int count, int depth)
 {
-	branching_factor = _branching_factor;
+	// branching_factor = _branching_factor;
 }
 
-void collapseBVH(BVH_Node *current, int current_branching_factor, int new_branching_factor)
-{
-	assert(2*current_branching_factor = new_branching_factor);
+// void collapseBVH(BVH_Node *current, int current_branching_factor, int new_branching_factor)
+// {
+// 	assert(2*current_branching_factor == new_branching_factor);
 
-	for(int i=0; i<current_branching_factor; i++){
-		current->children[i]->children[0];
-	}
+// 	for(int i=0; i<current_branching_factor; i++){
+// 		current->children[i]->children[0];
+// 	}
 
 
-}
+// }
 
 
 float* bvhToFlatArray(BVH_Node *root, int &size, int branching_factor){
@@ -286,7 +289,7 @@ float* bvhToFlatArray(BVH_Node *root, int &size, int branching_factor){
 				flat_array[++currentIndex] = current->children[i]->bbox.max.z;
 				//cerr<<currentIndex<<endl;
 			}
-			for(i=0; i<branching_factor; i++){
+			for(int i=0; i<branching_factor; i++){
 				flat_array[++currentIndex] = -1; // to be set to the ids of children
 			}
 
@@ -340,3 +343,4 @@ float* bvhToFlatArray(BVH_Node *root, int &size, int branching_factor){
 }
 
 
+#endif

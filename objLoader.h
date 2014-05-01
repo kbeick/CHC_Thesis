@@ -337,6 +337,10 @@ ObjReader::ObjReader(const char *filename)
     
     flushFaceGroup(); // flush the last loaded object
     ifs.close();
+    
+    for(int i=0; i<model.size(); i++){
+        totalTriangles+=model[i]->mesh->numTriangles;
+    }
     printStats();
 }
 
@@ -424,7 +428,7 @@ void ObjReader::printStats()
     for(int i=0; i<size;i++)
     {
         int s=model[i]->mesh->numTriangles;
-        totalTri+=model[i]->mesh->numTriangles;
+        // totalTri+=model[i]->mesh->numTriangles;
         if(model[i]->mesh->positions==NULL)   hasPositions      =false;
         if(model[i]->mesh->normals  ==NULL)   hasNormals        =false;
         if(model[i]->mesh->texcoords==NULL)   hasTextureCoords  =false;
@@ -455,11 +459,11 @@ void ObjReader::printStats()
     }
     cerr<<"Model Stats: "<<endl;
     cerr<<"Meshes in model : "<<size<<endl;
-    cerr<<"Total triangles: "<<totalTri<<endl;
+    cerr<<"Total triangles: "<<totalTriangles<<endl;
     if(hasPositions)        cerr<<"Positions included"<<endl;
     if(hasNormals)          cerr<<"Normals included"<<endl;
     if(hasTextureCoords)    cerr<<"Texture Coords included"<<endl;
-    totalTriangles=totalTri;
+    // totalTriangles=totalTri;
 
 }
 
