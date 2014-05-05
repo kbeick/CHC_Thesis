@@ -396,18 +396,26 @@ bool traverseFlatArray(float* flat_array, int idx, ray* ray, Vec3f* color, int d
     // LEAF NODE
     if (flat_array[idx++] == LEAF_FLAG){
         cerr << "LEAF NODE" << endl;
+        float closest[2] = {-1,std::numeric_limits<float>::infinity()};//[Tri ID, data]
         int triangle_count = flat_array[idx++];
         // Intersect Triangles
         for(int i=0; i<triangle_count; i++){
             cerr << "triangle id = " << flat_array[idx+i] << endl;
-            cerr << "~still need to intersect triangles" << endl;
-            // Calc color specs for closest intersected Triangle
-
+            float data;
+            if(tris[(int)flat_array[idx+i]].intersect(*ray, &data)){
+                if(data < closest[1]){
+                    closest[0] = i;
+                    closest[1] = data;
+                }
+            }
         }
-        color->x = 255;
-        color->y = 255;
-        color->z = 255;
-        return true;
+        // Calc color specs for closest intersected Triangle
+        if(closest[0] >= 0){
+            color->x = 255;
+            color->y = 255;
+            color->z = 255;
+            return true;
+        }else return false;
     }
     // INNER NODE
     else{
@@ -432,7 +440,6 @@ bool traverseFlatArray(float* flat_array, int idx, ray* ray, Vec3f* color, int d
 
             // Intersect Bounding Box
             float tnear;
-            cerr << "a " << tnear << endl;
             float tfar;
             // bool bb = box->intersect(*ray, &tnear, &tfar);
             bool bb = box->intersect(ray->unitDir, ray->source, ray->invDir, ray->sign, &tnear, &tfar);
@@ -458,8 +465,8 @@ bool traverseFlatArray(float* flat_array, int idx, ray* ray, Vec3f* color, int d
             if( least_box == -1){ return false; } //No BBox intersection
 
             cerr << "going to box at " << idx+least_box << endl;
-            if (traverseFlatArray(flat_array, idx+least_box, ray, color, d+1)){ return true; }
-            else{ mins[least_box] = 0; }
+            if (traverseFlatArray(flat_array, idx+least_box, ray, color, d+1)){ cerr << "returning T"<< endl;return true; }
+            else{ cerr << "in the else..."<<endl;mins[least_box] = 0; }
         }
         cerr << "shouldn't have gotten here...." << endl;
     }
@@ -515,7 +522,7 @@ int main(int argc, char** argv)
     // GET RAW DATA FROM objReader
     objReader->getRawData(verts, normals);
 
-    Triangle* tris = new Triangle[numTriangles];
+    tris = new Triangle[numTriangles];
     CreateTriangleArray(tris, numTriangles, verts);
 
     // BUILD BVH
@@ -543,12 +550,12 @@ int main(int argc, char** argv)
     // For each pixel
     for (int x = 0; x < IMAGE_WIDTH; x++) {
         for (int y = 0; y < IMAGE_HEIGHT; y++) {
-            // cerr << "pixel " << x << "," << y << " :: ";
+            cerr << "\n```````pixel " << x << "," << y << " :: ";
             int pixel = screen->pixel(x,y);
 
             // ----CALCULATE THE RAY FROM CAMERA TO PIXEL-----
             ray* curRay = new ray( campos, *getUnitDirToPixel(x,y) );
-            cerr << *curRay << endl;
+            // cerr << *curRay << endl;
             // curRay->normalize();
             // -----------------------------------------------
             // cerr << "***\nthe direction of myray " << x<<","<<y << "is: " << curRay->unitDir[0] << ", "  << curRay->unitDir[1] << ", "  << curRay->unitDir[2] << endl;
@@ -558,7 +565,7 @@ int main(int argc, char** argv)
 
             Vec3f* color = new Vec3f(0,0,0);
             bool b = traverseFlatArray(flat_array, 0, curRay, color, d);
-
+            cerr << "traversal complete" <<endl;
 
     //         // Get the color for this pixel
     //         // double* color = getPixelColor(curRay);
@@ -568,6 +575,7 @@ int main(int argc, char** argv)
                 screen->buffer[pixel] = color->x;
                 screen->buffer[pixel+1] = color->y;
                 screen->buffer[pixel+2] = color->z;
+                cerr << "color is " << color->x << endl;
             }
             delete color;
             delete curRay;

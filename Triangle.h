@@ -96,7 +96,7 @@ class Triangle{
 			bbox.extent=bbox.max-bbox.min;
 		}
 
-		bool intersect(const ray &r, float &isectData) const
+		bool intersect(const ray &r, float* isectData) const
 		{
 		    Vec3f edge1 = v2() - v1();
 		    Vec3f edge2 = v3() - v1();
@@ -114,7 +114,7 @@ class Triangle{
 		    float t = dotProduct(edge2, qvec) * invDet;
 
 		    if(t > 0.0){
-		    	isectData = t;
+		    	*isectData = t;
 		    	return true;
 		    }
 		    return false;

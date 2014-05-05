@@ -1,6 +1,7 @@
 #ifndef BBox_h
 #define BBox_h
 
+#include <limits>
 #include "utils.h"
 
 //adapted from Brandon Pelfrey
@@ -102,7 +103,7 @@ struct BBox {
 	  // cerr << "4min: " << tmin << ", max: " << tmax << endl;	
 	  *tnear=tmin;
 	  *tfar =tmax;
-	  return true;
+	  return ( (tmin < std::numeric_limits<float>::max()) && (tmax > std::numeric_limits<float>::min()) );
 	}
 
 	bool intersect(const Vec3f rayDir,const Vec3f rayOrigin, const Vec3f inv_direction,
@@ -132,7 +133,7 @@ struct BBox {
 	    tmax = tzmax;
 	  *tnear=tmin;
 	  *tfar =tmax;
-	  return true;
+	  return ( (tmin < std::numeric_limits<float>::max()) && (tmax > std::numeric_limits<float>::min()) );
 	}
 
 	bool intersect2(const Vec3f rayDir,const Vec3f rayOrigin, const Vec3f inv_direction, const int * sign , float *tnear, float *tfar) const 
