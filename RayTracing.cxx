@@ -9,6 +9,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <iostream>
+#include <fstream>
 
 #include <vtkDataSet.h>
 #include <vtkImageData.h>
@@ -21,6 +22,7 @@
 #include <vtkFloatArray.h>
 #include <vtkCellArray.h>
 
+#include <numeric>
 #include <cmath>
 #include <limits>
 #include <vector>
@@ -34,10 +36,11 @@
 #include "Triangle.h"
 #include "utils.h"
 #include "objLoader.h"
+#include "Stopwatch.h"
+#include "Camera.cxx"
 
 #define TOPDOWN  (1)
 #define BOTTOMUP (2)
-
 
 using std::cerr;
 using std::cout;
@@ -47,10 +50,11 @@ string USAGE_MSG = "USAGE: <executable> <model filename> <children per node (int
 
 
 bool PRODUCE_IMAGE = true;
-int IMAGE_WIDTH = 300;
-int IMAGE_HEIGHT = 300;
+int IMAGE_WIDTH = 100;
+int IMAGE_HEIGHT = 100;
 
 LightingParameters* lp = new LightingParameters();
+Camera c;
 
 
 Triangle* tris;
@@ -381,7 +385,7 @@ Vec3f* getUnitDirToPixel(int x, int y)
 {
     Vec3f* result = new Vec3f;
     
-    float angle = 2*tan(M_PI/4);
+    float angle = (M_PI/3);
     
     result->x = (2*x+1-IMAGE_WIDTH)/2 *angle/IMAGE_WIDTH; 
     result->y = (2*y+1-IMAGE_HEIGHT)/2 *angle/IMAGE_HEIGHT;  
@@ -392,16 +396,16 @@ Vec3f* getUnitDirToPixel(int x, int y)
 
 bool traverseFlatArray(float* flat_array, int idx, ray* ray, Vec3f* color, int d)
 {
-    cerr << "\nBox at " << idx << endl;
+    // cerr << "\nBox at " << idx << endl;
     // LEAF NODE
     if (flat_array[idx] == LEAF_FLAG){
-        cerr << "LEAF NODE" << endl;
+        // cerr << "LEAF NODE" << endl;
         idx++;
         float closest[2] = {-1,std::numeric_limits<float>::infinity()};//[Tri ID, data]
         int triangle_count = flat_array[idx++];
         // Intersect Triangles
         for(int i=0; i<triangle_count; i++){
-            cerr << "triangle id = " << flat_array[idx+i] << endl;
+            // cerr << "triangle id = " << flat_array[idx+i] << endl;
             float data;
             if(tris[(int)flat_array[idx+i]].intersect(*ray, &data)){
                 if(data < closest[1]){
@@ -430,7 +434,7 @@ bool traverseFlatArray(float* flat_array, int idx, ray* ray, Vec3f* color, int d
     }
     // INNER NODE
     else{
-        cerr << "INNER NODE" << endl;
+        // cerr << "INNER NODE" << endl;
 
         std::vector<float> mins (branching_factor, 0);// idx == which BBox, val == tnear of BBox (if intersect else 0)
         // float mins[branching_factor] = {};// idx == which BBox, val == tnear of BBox (if intersect else 0)
@@ -449,8 +453,8 @@ bool traverseFlatArray(float* flat_array, int idx, ray* ray, Vec3f* color, int d
             Vec3f max = Vec3f(max_x, max_y, max_z);
             BBox* box = new BBox(min, max);
 
-            cerr << "MIN: " << min << endl;
-            cerr << "MAX: " << max << endl;
+            // cerr << "MIN: " << min << endl;
+            // cerr << "MAX: " << max << endl;
 
             // Intersect Bounding Box
             float tnear;
@@ -458,9 +462,9 @@ bool traverseFlatArray(float* flat_array, int idx, ray* ray, Vec3f* color, int d
             // bool bb = box->intersect(*ray, &tnear, &tfar);
             bool bb = box->intersect(ray->unitDir, ray->source, ray->invDir, ray->sign, &tnear, &tfar);
             if ( bb ){
-                cerr << "intersection! " << tnear << endl;
+                // cerr << "intersection! " << tnear << endl;
                 mins[i] = tnear;
-                cerr << "~~intsection, mins["<<i<<"] got " << mins[i] << endl;
+                // cerr << "~~intsection, mins["<<i<<"] got " << mins[i] << endl;
             }
             delete box;
         }
@@ -472,7 +476,7 @@ bool traverseFlatArray(float* flat_array, int idx, ray* ray, Vec3f* color, int d
             for(int i=0; i<branching_factor; i++){
                 if( mins[i] != 0){
                     if(least_box == -1 || mins[i] < mins[least_box] ){ least_box=i;
-                        cerr << "New least box "<<least_box << endl;
+                        // cerr << "New least box "<<least_box << endl;
                     }
                 }
             }
@@ -480,9 +484,15 @@ bool traverseFlatArray(float* flat_array, int idx, ray* ray, Vec3f* color, int d
 
             int idx_next_box = idx+least_box+1;
 
-            cerr << "going to box at " << idx_next_box << endl;
-            if (traverseFlatArray(flat_array, idx_next_box, ray, color, d+1)){ cerr << "returning T"<< endl;return true; }
-            else{ cerr << "in the else..."<<endl;mins[least_box] = 0; }
+            // cerr << "going to box at " << idx_next_box << endl;
+            if (traverseFlatArray(flat_array, idx_next_box, ray, color, d+1)){ 
+                // cerr << "returning T"<< endl;
+                return true;
+            }
+            else{ 
+                // cerr << "in the else..."<<endl;
+                mins[least_box] = 0;
+            }
         }
         cerr << "shouldn't have gotten here...." << endl;
     }
@@ -491,7 +501,28 @@ bool traverseFlatArray(float* flat_array, int idx, ray* ray, Vec3f* color, int d
 
 int main(int argc, char** argv)
 {
-    cerr << "\n\n~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n";
+    Stopwatch* stopwatch = new Stopwatch();
+
+    ofstream data_log;
+    data_log.open("log_data_output.txt");
+
+    data_log << "___________________________________\n";
+    data_log << "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n";
+
+    // CAMERA PARAMETERS
+    c.near = 5;
+    c.far = 200;
+    c.angle = M_PI/6;
+    // c.position[0] = 40*sin(2*M_PI*t);
+    // c.position[1] = 40*cos(2*M_PI*t);
+    // c.position[2] = 40;
+    c.focus[0] = 0;
+    c.focus[1] = 0;
+    c.focus[2] = 0;
+    c.up[0] = 0;
+    c.up[1] = 1;
+    c.up[2] = 0;
+
     // HANDLE AND SET BVH PARAMETERS
     if (argc != 9){ cerr << USAGE_MSG; exit(0);}
     try{
@@ -501,6 +532,9 @@ int main(int argc, char** argv)
         campos[0] = atof(argv[4]);
         campos[1] = atof(argv[5]);
         campos[2] = atof(argv[6]);
+        // c.position[0] = atof(argv[4]);
+        // c.position[1] = atof(argv[5]);
+        // c.position[2] = atof(argv[6]);
         reflec = atof(argv[7]);
         opacity = atof(argv[8]);
     }catch (const std::exception &exc){
@@ -510,7 +544,24 @@ int main(int argc, char** argv)
         exit(0);
     }
 
-    print_params();
+    data_log << "FILE: " << argv[1] <<
+        "  Branching Factor: " << branching_factor <<
+        "  Constr Method: " << argv[3] <<
+        "  Campos: " << argv[4] << ", " << argv[5] << ", " << argv[6] <<
+        "  Reflect: " << reflec <<
+        "  Opacity: " << opacity <<
+        endl;
+
+    // print_params();
+
+    // double viewDir[] = {c.position[0] - c.focus[0], c.position[1] - c.focus[1], c.position[2] - c.focus[2]};
+    // // Normalize viewDir
+    // double sqSum = 0;
+    // for (int i=0; i<3; i++)
+    //     sqSum += (pow(viewDir[i],2));
+    // double normalizer = sqrt(sqSum);
+    // for (int i = 0; i<3; i++)
+    //     viewDir[i] = viewDir[i]/normalizer;
 
     vtkImageData *image;
     Screen* screen = new Screen;
@@ -545,28 +596,37 @@ int main(int argc, char** argv)
     BVH_Node *root = new BVH_Node();
     root->id = 0;
     root->parent = NULL;
+
+    // START TIMER
+    stopwatch->reset();
+
     // Call Specified BVH Constructor
     if (construction_method == TOPDOWN)       BuildBVH_topdown(tris, root, root->parent, numTriangles, 0);
     else if (construction_method == BOTTOMUP) BuildBVH_bottomup(tris, root, root->parent, numTriangles, 0);
     // TODO, implement BuildBVH_bottomup()!!
+
+    data_log << "BUILD TIME  " << stopwatch->read() << endl;
     
     int flat_array_len;
     float* flat_array = bvhToFlatArray(root, flat_array_len, branching_factor);
 
-    for(int a=0; a<flat_array_len; a++){
-        if(a==56 || a==64 || a==72 || a==80 || a==88) cerr << "idx " << a << " ";
-        cerr << flat_array[a] << endl;
-    }
+    // for(int a=0; a<flat_array_len; a++){
+    //     if(a==56 || a==64 || a==72 || a==80 || a==88) cerr << "idx " << a << " ";
+    //     cerr << flat_array[a] << endl;
+    // }
 
-    printf("Made it this far! NOW TO TRAVERSE!\n");
+    // printf("Made it this far! NOW TO TRAVERSE!\n");
 
     // ------------------------------- DO RAY TRACING ------------------------------
     // -----------------------------------------------------------------------------
     
+    int npixels = IMAGE_WIDTH*IMAGE_HEIGHT;
+    float traversal_times[npixels];
+
     // For each pixel
     for (int x = 0; x < IMAGE_WIDTH; x++) {
         for (int y = 0; y < IMAGE_HEIGHT; y++) {
-            cerr << "\n```````pixel " << x << "," << y << " :: ";
+            // cerr << "\n```````pixel " << x << "," << y << " :: ";
             int pixel = screen->pixel(x,y);
 
             // ----CALCULATE THE RAY FROM CAMERA TO PIXEL-----
@@ -578,24 +638,35 @@ int main(int argc, char** argv)
             
             // ----TRAVERSE THE BVH
             int d=0;
-
             Vec3f* color = new Vec3f(0,0,0);
-            bool b = traverseFlatArray(flat_array, 0, curRay, color, d);
-            cerr << "traversal complete" <<endl;
 
-    //         // Get the color for this pixel
-    //         // double* color = getPixelColor(curRay);
+            // START TIMER
+            stopwatch->reset();
+
+            bool b = traverseFlatArray(flat_array, 0, curRay, color, d);
+            // cerr << "traversal complete" <<endl;
+
+            traversal_times[x*IMAGE_HEIGHT + y] = stopwatch->read();
+
+            // data_log << "TRAVERSAL TIME  " << stopwatch->read() << endl;
+
+            // Get the color for this pixel
+            // double* color = getPixelColor(curRay);
             
             if(PRODUCE_IMAGE){
                 // Assign colors to pixel
                 screen->buffer[pixel] = color->x;
                 screen->buffer[pixel+1] = color->y;
                 screen->buffer[pixel+2] = color->z;
-                cerr << "color is " << color->x << endl;
+                // cerr << "color is " << color->x << endl;
             }
             delete color;
             delete curRay;
         }
     }
+    float avg_time = std::accumulate(traversal_times,traversal_times+npixels,0.0) / npixels;
+    data_log << "AVG TRAVERSAL TIME  " << avg_time << endl;
+
     if( PRODUCE_IMAGE ) WriteImage(image, "myOutput") ;
+    data_log.close();
 }
