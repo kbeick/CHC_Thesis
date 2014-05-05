@@ -22,7 +22,9 @@
 #include <vtkCellArray.h>
 
 #include <cmath>
+#include <limits>
 #include <vector>
+#include <list>
 #include <algorithm>
 #include <string>
 #include "BVH_kevin.h"
@@ -45,8 +47,8 @@ string USAGE_MSG = "USAGE: <executable> <model filename> <children per node (int
 
 
 bool PRODUCE_IMAGE = true;
-int IMAGE_WIDTH = 2000;
-int IMAGE_HEIGHT = 2000;
+int IMAGE_WIDTH = 300;
+int IMAGE_HEIGHT = 300;
 
 LightingParameters* lp = new LightingParameters();
 
@@ -56,9 +58,9 @@ int numTriangles;
 
 // PARAMETERS FOR BVH
 ObjReader* objReader;        // Object Reader for file
-int children_per_node = 0;          // Children per Node
+int branching_factor = 0;          // Children per Node
 int construction_method = 0;        // TOPDOWN==1 ; BOTTOMUP==2
-double campos[3] = {0.0,0.0,0.0};   // Camera Position
+Vec3f campos;                   // Camera Position
 double reflec = 0.0;                // Global Reflectivity
 double opacity = 0.0;               // Global Opacity
 
@@ -388,6 +390,81 @@ Vec3f* getUnitDirToPixel(int x, int y)
     return result;
 }
 
+bool traverseFlatArray(float* flat_array, int idx, ray* ray, Vec3f* color, int d)
+{
+    cerr << "\nBox at " << idx << endl;
+    // LEAF NODE
+    if (flat_array[idx++] == LEAF_FLAG){
+        cerr << "LEAF NODE" << endl;
+        int triangle_count = flat_array[idx++];
+        // Intersect Triangles
+        for(int i=0; i<triangle_count; i++){
+            cerr << "triangle id = " << flat_array[idx+i] << endl;
+            cerr << "~still need to intersect triangles" << endl;
+            // Calc color specs for closest intersected Triangle
+
+        }
+        color->x = 255;
+        color->y = 255;
+        color->z = 255;
+        return true;
+    }
+    // INNER NODE
+    else{
+        cerr << "INNER NODE" << endl;
+
+        std::vector<float> mins (branching_factor, 0);// idx == which BBox, val == tnear of BBox (if intersect else 0)
+        // float mins[branching_factor] = {};// idx == which BBox, val == tnear of BBox (if intersect else 0)
+
+        // Intersect bounding boxes
+        for(int i=0; i<branching_factor; i++){
+            float min_x = flat_array[i+idx++];
+            float min_y = flat_array[i+idx++];
+            float min_z = flat_array[i+idx++];
+            float max_x = flat_array[i+idx++];
+            float max_y = flat_array[i+idx++];
+            float max_z = flat_array[i+idx++];
+
+            // Construct Bounding Box
+            Vec3f min = Vec3f(min_x, min_y, min_z);
+            Vec3f max = Vec3f(max_x, max_y, max_z);
+            BBox* box = new BBox(min, max);
+
+            // Intersect Bounding Box
+            float tnear;
+            cerr << "a " << tnear << endl;
+            float tfar;
+            // bool bb = box->intersect(*ray, &tnear, &tfar);
+            bool bb = box->intersect(ray->unitDir, ray->source, ray->invDir, ray->sign, &tnear, &tfar);
+            if ( bb ){
+                cerr << "intersection! " << tnear << endl;
+                mins[i] = tnear;
+                cerr << "~~intsection, mins["<<i<<"] got " << mins[i] << endl;
+            }
+            delete box;
+        }
+        // Traverse closest intersected Bounding Box
+        // bool still_searching = true;
+        while(1){
+            // cerr << "another iteration of while" << endl;
+            int least_box = -1;
+            for(int i=0; i<branching_factor; i++){
+                if( mins[i] != 0){
+                    if(least_box == -1 || mins[i] < mins[least_box] ){ least_box=i;
+                        // cerr << "New least box "<<least_box << endl;
+                    }
+                }
+            }
+            if( least_box == -1){ return false; } //No BBox intersection
+
+            cerr << "going to box at " << idx+least_box << endl;
+            if (traverseFlatArray(flat_array, idx+least_box, ray, color, d+1)){ return true; }
+            else{ mins[least_box] = 0; }
+        }
+        cerr << "shouldn't have gotten here...." << endl;
+    }
+}
+
 
 int main(int argc, char** argv)
 {
@@ -396,7 +473,7 @@ int main(int argc, char** argv)
     if (argc != 9){ cerr << USAGE_MSG; }
     try{
         objReader = new ObjReader(argv[1]);
-        children_per_node = atoi( argv[2] );
+        branching_factor = atoi( argv[2] );
         SetConstructionMethod(argv[3]);
         campos[0] = atof(argv[4]);
         campos[1] = atof(argv[5]);
@@ -413,6 +490,7 @@ int main(int argc, char** argv)
     print_params();
 
     vtkImageData *image;
+    Screen* screen = new Screen;
     if (PRODUCE_IMAGE){
         image = NewImage(IMAGE_WIDTH, IMAGE_HEIGHT);
         unsigned char *buffer =
@@ -423,7 +501,6 @@ int main(int argc, char** argv)
         for (int i = 0 ; i < npixels*3 ; i++)
             buffer[i] = 0;
         
-        Screen* screen = new Screen;
         screen->buffer = buffer;
         screen->width = IMAGE_WIDTH;
         screen->height = IMAGE_HEIGHT;
@@ -441,61 +518,60 @@ int main(int argc, char** argv)
     Triangle* tris = new Triangle[numTriangles];
     CreateTriangleArray(tris, numTriangles, verts);
 
-
     // BUILD BVH
     BVH_Node *root = new BVH_Node();
     root->id = 0;
     root->parent = NULL;
     // Call Specified BVH Constructor
-    if (construction_method == TOPDOWN)       BuildBVH_topdown(tris, root, root->parent, 0, 0);
-    else if (construction_method == BOTTOMUP) BuildBVH_bottomup(tris, root, root->parent, 0, 0);
+    if (construction_method == TOPDOWN)       BuildBVH_topdown(tris, root, root->parent, numTriangles, 0);
+    else if (construction_method == BOTTOMUP) BuildBVH_bottomup(tris, root, root->parent, numTriangles, 0);
     // TODO, implement BuildBVH_bottomup()!!
     
     int flat_array_len;
-    float* flat_array = bvhToFlatArray(root, flat_array_len, children_per_node);
+    float* flat_array = bvhToFlatArray(root, flat_array_len, branching_factor);
 
-    printf("Made it this far! woo!\n");
+    for(int a=0; a<flat_array_len; a++){
+        if(a==56 || a==64 || a==72 || a==80 || a==88) cerr << "idx " << a << " ";
+        cerr << flat_array[a] << endl;
+    }
+
+    printf("Made it this far! NOW TO TRAVERSE!\n");
 
     // ------------------------------- DO RAY TRACING ------------------------------
     // -----------------------------------------------------------------------------
     
     // For each pixel
-    // for (int x = 0; x < IMAGE_WIDTH; x++) {
-    //     for (int y = 0; y < IMAGE_HEIGHT; y++) {
-    //         //cerr << "pixel " << x << "," << y << " :: ";
-    //         int pixel = screen->pixel(x,y);
+    for (int x = 0; x < IMAGE_WIDTH; x++) {
+        for (int y = 0; y < IMAGE_HEIGHT; y++) {
+            // cerr << "pixel " << x << "," << y << " :: ";
+            int pixel = screen->pixel(x,y);
 
-    //         // ----CALCULATE THE RAY FROM CAMERA TO PIXEL-----
-    //         ray* curRay = new ray( campos, &getUnitDirToPixel(x,y) );
-    //         curRay->normalize();
-    //         // -----------------------------------------------
-    //         //cerr << "***\nthe direction of myray " << x<<","<<y << "is: " << curRay->unitDir[0] << ", "  << curRay->unitDir[1] << ", "  << curRay->unitDir[2] << endl;
+            // ----CALCULATE THE RAY FROM CAMERA TO PIXEL-----
+            ray* curRay = new ray( campos, *getUnitDirToPixel(x,y) );
+            cerr << *curRay << endl;
+            // curRay->normalize();
+            // -----------------------------------------------
+            // cerr << "***\nthe direction of myray " << x<<","<<y << "is: " << curRay->unitDir[0] << ", "  << curRay->unitDir[1] << ", "  << curRay->unitDir[2] << endl;
             
-    //         // TODO make this its own function
-    //         // TRAVERSE THE BVH (flat_array)
-    //         int b, first_ind_of_node = 0;
-    //         while(1){
-    //             for(b=first_ind_of_node, b<first_ind_of_node+12; b+=6){
-    //                 // Check if leaf node
-    //                 //if(flat_array[b] == LEAF_FLAG){
-    //                     // Check which/if rays intersect triangles
-    //                 //}
+            // ----TRAVERSE THE BVH
+            int d=0;
 
-    //                 // Check if curRay intersects a bounding box
+            Vec3f* color = new Vec3f(0,0,0);
+            bool b = traverseFlatArray(flat_array, 0, curRay, color, d);
 
-    //             }
-    //         }
 
     //         // Get the color for this pixel
     //         // double* color = getPixelColor(curRay);
             
-    //         if(PRODUCE_IMAGE){
-    //             // Assign colors to pixel
-    //             screen->buffer[pixel] = color[0];
-    //             screen->buffer[pixel+1] = color[1];
-    //             screen->buffer[pixel+2] = color[2];
-    //         }
-    //     }
-    // }
+            if(PRODUCE_IMAGE){
+                // Assign colors to pixel
+                screen->buffer[pixel] = color->x;
+                screen->buffer[pixel+1] = color->y;
+                screen->buffer[pixel+2] = color->z;
+            }
+            delete color;
+            delete curRay;
+        }
+    }
     if( PRODUCE_IMAGE ) WriteImage(image, "myOutput") ;
 }

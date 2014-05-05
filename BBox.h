@@ -36,9 +36,9 @@ struct BBox {
 
 	void clear()
 	{
-		min.x=1000000;
-		min.y=1000000;
-		min.z=1000000;
+		min.x= 1000000;
+		min.y= 1000000;
+		min.z= 1000000;
 		max.x=-1000000;
 		max.y=-1000000;
 		max.z=-1000000; 
@@ -71,14 +71,46 @@ struct BBox {
 	}
 
 
-
-	bool intersect(const Vec3f rayDir,const Vec3f rayOrigin, const Vec3f inv_direction, const int * sign , float *tnear, float *tfar) const 
+	bool intersect(const ray &ray, float *tnear, float *tfar) const 
 	{
 
 	  float tmin, tmax, tymin, tymax, tzmin, tzmax;
 	  Vec3f parameters[]={min,max};
 	  //Vec3f inv_direction( 1.0/rayDir.x, 1.0/rayDir.y, 1.0/rayDir.z );
-	  
+
+	  tmin =  ((parameters[  ray.sign[0]].x - ray.source.x) * ray.invDir.x);
+	  tmax =  ((parameters[1-ray.sign[0]].x - ray.source.x) * ray.invDir.x);
+	  // cerr << "1min: " << tmin << ", max: " << tmax << endl;	
+	  tymin = ((parameters[  ray.sign[1]].y - ray.source.y) * ray.invDir.y);
+	  tymax = ((parameters[1-ray.sign[1]].y - ray.source.y) * ray.invDir.y);
+	  // cerr << "2min: " << tmin << ", max: " << tmax << endl;	
+	  if ( (tmin > tymax) || (tymin > tmax) ) 
+	    return false;
+	  if (tymin > tmin)
+	    tmin = tymin;
+	  if (tymax < tmax)
+	    tmax = tymax;
+	  tzmin = ((parameters[  ray.sign[2]].z - ray.source.z) * ray.invDir.z);
+	  tzmax = ((parameters[1-ray.sign[2]].z - ray.source.z) * ray.invDir.z);
+	  // cerr << "3min: " << tmin << ", max: " << tmax << endl;	
+	  if ( (tmin > tzmax) || (tzmin > tmax) ) 
+	    return false;
+	  if (tzmin > tmin)
+	    tmin = tzmin;
+	  if (tzmax < tmax)
+	    tmax = tzmax;
+	  // cerr << "4min: " << tmin << ", max: " << tmax << endl;	
+	  *tnear=tmin;
+	  *tfar =tmax;
+	  return true;
+	}
+
+	bool intersect(const Vec3f rayDir,const Vec3f rayOrigin, const Vec3f inv_direction,
+		const int * sign , float *tnear, float *tfar) const 
+	{
+	  float tmin, tmax, tymin, tymax, tzmin, tzmax;
+	  Vec3f parameters[]={min,max};
+	  //Vec3f inv_direction( 1.0/rayDir.x, 1.0/rayDir.y, 1.0/rayDir.z );
 
 	  tmin =  ((parameters[  sign[0]].x - rayOrigin.x) * inv_direction.x);
 	  tmax =  ((parameters[1-sign[0]].x - rayOrigin.x) * inv_direction.x);

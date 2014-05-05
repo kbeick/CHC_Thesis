@@ -19,7 +19,7 @@ int level=0;
 
 static int flatArrayCount=1;
 static int leafCount=0;
-int branching_factor;
+// int branching_factor;
 
 using namespace std;
 
@@ -144,22 +144,25 @@ void BuildBVH_topdown(Triangle* triangles, BVH_Node *current, BVH_Node *parent,
 {
 	// branching_factor = _branching_factor;
 	// Set initial (dummy) values
-	level++;
+	// level++;
+	// cerr << "\ndepth " << depth << endl;
 
 	current->parent = parent;
 	current->triangle_count = count;
 
 	//find the total bbox for the array
 	current->bbox=triangles[0].bbox;
-	for(int i=1; i<count;i++)
+	for(int i=1; i<count; i++)
 	{	
 		current->bbox.expandToInclude(triangles[i].bbox);
 	}
 
-	//cerr<<"LeafCheck"<<endl;
+	// cerr << "found the total bbox for the array" << endl;
+
+	// cerr<<"LeafCheck"<<endl;
 	//At a leaf node, add triangles to the node and return
 	if (count <= LEAF_SIZE){
-		//cerr<<"At leaf"<<endl;
+		// cerr<<"At LEAF with count " <<count <<endl;
 		current->triangles = triangles;
 		current->triangle_count=count;
 		for(int i=0; i<MAX_BRANCHING_FACTOR; i++) current->children[i] = NULL;
@@ -172,7 +175,7 @@ void BuildBVH_topdown(Triangle* triangles, BVH_Node *current, BVH_Node *parent,
 	inner_node_counter++;
 	flatArrayCount+=NON_LEAF_SIZE;
 	// Not at a leaf node, sort along an axis and recurse CalculateBestAxis(triangles, count,current->bbox)
-	//cerr<<"Sorting"<<endl;axis_id
+	// cerr<<"Sorting"<<endl;
 	int splitPoint;
 	int bestAxis;
 
@@ -196,7 +199,7 @@ void BuildBVH_topdown(Triangle* triangles, BVH_Node *current, BVH_Node *parent,
 			std::sort(triangles,triangles+ count, compZ);
 		}
 	}
-	//cerr<<"Done Sorting"<<endl;
+	// cerr<<"Done Sorting"<<endl;
 	// inner node, so we have to create 2 children for it
 	BVH_Node *prev = new BVH_Node();
 	BVH_Node *next = new BVH_Node();
@@ -210,7 +213,6 @@ void BuildBVH_topdown(Triangle* triangles, BVH_Node *current, BVH_Node *parent,
 
 	BuildBVH_topdown(triangles, prev, current, splitPoint, depth+1);
 	BuildBVH_topdown((triangles+splitPoint), next, current, rightCount, depth+1);
-
 	return;
 }
 
@@ -240,7 +242,7 @@ float* bvhToFlatArray(BVH_Node *root, int &size, int branching_factor){
 	queue<BVH_Node*> leaf_nodes;
 	tree.push(root);
 	BVH_Node *current;
-	//cerr<<"Inners "<<inner_node_counter<<endl;
+	// cerr<<"\nInners "<<inner_node_counter<<endl;
 
 	// branching_factor*6 (min,max x,y,z of each child) + branching_factor(refer to each child) 
 	int elements_per_inner_node = branching_factor*7;
@@ -252,27 +254,30 @@ float* bvhToFlatArray(BVH_Node *root, int &size, int branching_factor){
 	int non_leaf_count=0;
 	int leaf_count=0;
 	int currentIndex=0;
-	bool isLeaf=true;
-	//cerr<<"Begining while "<<size<<endl;
+	// cerr<<"Begining while "<<size<<endl;
 
 	// GET ALL NODES FROM TREE
 	while(!tree.empty()){
+		bool isLeaf=true;
 		current=tree.top();
 		tree.pop();
-		//cerr<<"Begin Node: "<<current->id<<" "<<currentIndex<<" "<<current<<endl;
+		// cerr<<"\nBegin Node: "<<current->id<<" "<<currentIndex<<" "<<current<<endl;
 		current->id=currentIndex;
 
-		//if(current->parent==NULL) cerr<<"Must be root because I have no parent"<<endl;
-		//else cerr<<"At node "<<current->id<<" My Parent is "<<current->parent->id<<endl;
+		// if(current->parent==NULL) cerr<<"Must be root because I have no parent"<<endl;
+		// else cerr<<"At node "<<current->id<<" My Parent is "<<current->parent->id<<endl;
 
 		// Is a leaf iff all children are NULL
 		for(int i=0; i<branching_factor; i++){
+			// cerr << "child: " << current->children[i] << endl;
+			// cerr << "NULL? " << (current->children[i] == NULL) << endl;
 			isLeaf = (current->children[i] == NULL) && isLeaf;
 			if( isLeaf == false) break;
 		}
 	
-		//cerr<<"I have h this many triangles : "<<current->triangle_count<<endl;	
+		// cerr<<"I have this many triangles : "<<current->triangle_count<<endl;	
 		if(!isLeaf){
+			// cerr << "NOT LEAF" << endl;
 			currentIndex--; //Cuz 1st time thru it's already where it should be, so this counteracts first increment
 			//#pragma unroll
 			for(int i=0; i<branching_factor; i++){
@@ -295,21 +300,24 @@ float* bvhToFlatArray(BVH_Node *root, int &size, int branching_factor){
 
 		}
 		else if(isLeaf){
+			// cerr << "LEAF" << endl;
 			flat_array[currentIndex] = LEAF_FLAG;
-			//cerr<<"Beginning Leaf index "<<currentIndex<<endl;
+			// cerr<<"Beginning Leaf index "<<currentIndex<<endl;
 			flat_array[++currentIndex] = current->triangle_count;
-			//cerr<<currentIndex<<endl;//list<Triangle>::iterator it=current->triangles.begin(); it != current->triangles.end(); ++it
+			// cerr<<currentIndex<< " gets # triangles: " << flat_array[currentIndex] <<endl;//list<Triangle>::iterator it=current->triangles.begin(); it != current->triangles.end(); ++it
 			for(int i=0;i<current->triangle_count;i++)
 			{
 				flat_array[++currentIndex] = current->triangles[i].id;
-				//cerr<<currentIndex<<endl;
+				// cerr<<currentIndex<< " gets " << flat_array[currentIndex] <<endl;
 			}
 			//int padding=14 - current->triangles.size();// make each node fit into 16 btyes
 			int padding=6 - current->triangle_count;
-			//cerr<<"Padding "<<padding<<" "<<current->triangles.size()<<endl;
+			// cerr<<"Padding "<<padding<<" "<<current->triangles->size()<<endl;
 
-			for(int i=0;i<padding;i++) flat_array[++currentIndex] =-1;
-				//cerr<<currentIndex<<endl;
+			for(int i=0;i<padding;i++){
+				flat_array[++currentIndex] =-1;
+				// cerr<<currentIndex<< " gets -1" <<endl;
+			}
 		}
 		
 		//tell your parent where you are
