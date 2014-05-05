@@ -394,8 +394,9 @@ bool traverseFlatArray(float* flat_array, int idx, ray* ray, Vec3f* color, int d
 {
     cerr << "\nBox at " << idx << endl;
     // LEAF NODE
-    if (flat_array[idx++] == LEAF_FLAG){
+    if (flat_array[idx] == LEAF_FLAG){
         cerr << "LEAF NODE" << endl;
+        idx++;
         float closest[2] = {-1,std::numeric_limits<float>::infinity()};//[Tri ID, data]
         int triangle_count = flat_array[idx++];
         // Intersect Triangles
@@ -411,9 +412,19 @@ bool traverseFlatArray(float* flat_array, int idx, ray* ray, Vec3f* color, int d
         }
         // Calc color specs for closest intersected Triangle
         if(closest[0] >= 0){
-            color->x = 255;
-            color->y = 255;
-            color->z = 255;
+            if(closest[0]== 0){ color->x = 255; color->y = 000; color->z = 000; }
+            if(closest[0]== 1){ color->x = 255; color->y = 128; color->z = 000; }
+            if(closest[0]== 2){ color->x = 255; color->y = 255; color->z = 000; }
+            if(closest[0]== 3){ color->x = 128; color->y = 255; color->z = 000; }
+            if(closest[0]== 4){ color->x = 000; color->y = 255; color->z = 000; }
+            if(closest[0]== 5){ color->x = 000; color->y = 255; color->z = 128; }
+            if(closest[0]== 6){ color->x = 000; color->y = 255; color->z = 255; }
+            if(closest[0]== 7){ color->x = 000; color->y = 128; color->z = 255; }
+            if(closest[0]== 8){ color->x = 000; color->y = 000; color->z = 255; }
+            if(closest[0]== 9){ color->x = 127; color->y = 000; color->z = 255; }
+            if(closest[0]==10){ color->x = 255; color->y = 000; color->z = 255; }
+            if(closest[0]==11){ color->x = 255; color->y = 000; color->z = 127; }
+
             return true;
         }else return false;
     }
@@ -426,17 +437,20 @@ bool traverseFlatArray(float* flat_array, int idx, ray* ray, Vec3f* color, int d
 
         // Intersect bounding boxes
         for(int i=0; i<branching_factor; i++){
-            float min_x = flat_array[i+idx++];
-            float min_y = flat_array[i+idx++];
-            float min_z = flat_array[i+idx++];
-            float max_x = flat_array[i+idx++];
-            float max_y = flat_array[i+idx++];
-            float max_z = flat_array[i+idx++];
+            float min_x = flat_array[idx++];
+            float min_y = flat_array[idx++];
+            float min_z = flat_array[idx++];
+            float max_x = flat_array[idx++];
+            float max_y = flat_array[idx++];
+            float max_z = flat_array[idx++];
 
             // Construct Bounding Box
             Vec3f min = Vec3f(min_x, min_y, min_z);
             Vec3f max = Vec3f(max_x, max_y, max_z);
             BBox* box = new BBox(min, max);
+
+            cerr << "MIN: " << min << endl;
+            cerr << "MAX: " << max << endl;
 
             // Intersect Bounding Box
             float tnear;
@@ -458,14 +472,16 @@ bool traverseFlatArray(float* flat_array, int idx, ray* ray, Vec3f* color, int d
             for(int i=0; i<branching_factor; i++){
                 if( mins[i] != 0){
                     if(least_box == -1 || mins[i] < mins[least_box] ){ least_box=i;
-                        // cerr << "New least box "<<least_box << endl;
+                        cerr << "New least box "<<least_box << endl;
                     }
                 }
             }
             if( least_box == -1){ return false; } //No BBox intersection
 
-            cerr << "going to box at " << idx+least_box << endl;
-            if (traverseFlatArray(flat_array, idx+least_box, ray, color, d+1)){ cerr << "returning T"<< endl;return true; }
+            int idx_next_box = idx+least_box+1;
+
+            cerr << "going to box at " << idx_next_box << endl;
+            if (traverseFlatArray(flat_array, idx_next_box, ray, color, d+1)){ cerr << "returning T"<< endl;return true; }
             else{ cerr << "in the else..."<<endl;mins[least_box] = 0; }
         }
         cerr << "shouldn't have gotten here...." << endl;
@@ -477,7 +493,7 @@ int main(int argc, char** argv)
 {
     cerr << "\n\n~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n";
     // HANDLE AND SET BVH PARAMETERS
-    if (argc != 9){ cerr << USAGE_MSG; }
+    if (argc != 9){ cerr << USAGE_MSG; exit(0);}
     try{
         objReader = new ObjReader(argv[1]);
         branching_factor = atoi( argv[2] );
