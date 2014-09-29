@@ -248,7 +248,7 @@ void ObjReader::loadMTL(const std::string &mtlFilename)
 
         if (!strncmp(token, "newmtl", 6)) {
             parseSep(token += 6);
-            std::string name(token); printf("Name of the material %s\n", name.c_str());
+            std::string name(token); printf("Name of the material: %s\n", name.c_str());
             mat = new Material;
             materials[name] = mat;
             continue;
@@ -315,11 +315,13 @@ ObjReader::ObjReader(const char *filename)
             /*! use material */
             if (!strncmp(token, "usemtl", 6) && isSep(token[6]))
             {
-                //cerr<<"usemtl!!"<<endl;
+                cerr<<"usemtl!!"<<endl;
                 flushFaceGroup();
                 std::string name(parseSep(token += 6));
                 if (materials.find(name) == materials.end()) curMaterial = defaultMaterial;
                 else curMaterial = materials[name];
+
+                cerr << "curMaterial is " << curMaterial << endl;
                 continue;
             }
             
@@ -337,10 +339,13 @@ ObjReader::ObjReader(const char *filename)
     
     flushFaceGroup(); // flush the last loaded object
     ifs.close();
+
+    totalTriangles = 0;
     
     for(int i=0; i<model.size(); i++){
         totalTriangles+=model[i]->mesh->numTriangles;
     }
+
     printStats();
 }
 
@@ -457,7 +462,7 @@ void ObjReader::printStats()
        // }
 
     }
-    cerr<<"Model Stats: "<<endl;
+    cerr<<"MODEL STATS: "<<endl;
     cerr<<"Meshes in model : "<<size<<endl;
     cerr<<"Total triangles: "<<totalTriangles<<endl;
     if(hasPositions)        cerr<<"Positions included"<<endl;
@@ -547,25 +552,34 @@ void ObjReader::extractNormals()
             }
 
             //cycle back over the normals and average them, then normalize
-            //cerr<<"COUNT "<<count<<endl;
-            for (int j=0;j<count;j++)
-            {
-                norm=&model[i]->mesh->normals[j];
-                norm->x/=sharedVertexCount[j];
-                norm->y/=sharedVertexCount[j];
-                norm->z/=sharedVertexCount[j];
+            // cerr<<"COUNT "<<count<<endl;
+            
 
-                float m=sqrt(norm->x*norm->x+norm->y*norm->y+norm->z*norm->z);
+            /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+            /* HEY! I don't know why this loop below is here, so I commented it out... */
+            /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-                if(m==0) {cerr<<"DIVIDE BY ZER0"<<endl; exit(1);}
+            // for (int j=0;j<count;j++)
+            // {
+            //     norm=&model[i]->mesh->normals[j];
+            //     norm->x/=sharedVertexCount[j];
+            //     norm->y/=sharedVertexCount[j];
+            //     norm->z/=sharedVertexCount[j];
+
+            //     float m=sqrt(norm->x*norm->x+norm->y*norm->y+norm->z*norm->z);
+
+            //     if(m==0) {cerr<<"DIVIDE BY ZER0"<<endl; exit(1);}
                 
 
-                norm->x*=m;
-                norm->y*=m;
-                norm->z*=m;
-                //cerr<<"Shared "<<sharedVertexCount[j]<<endl;
-                //cerr<<j<<" Norms : "<<*norm<<" "<<model[i]->mesh->normals[j]<<endl;
-            }
+            //     norm->x*=m;
+            //     norm->y*=m;
+            //     norm->z*=m;
+            //     //cerr<<"Shared "<<sharedVertexCount[j]<<endl;
+            //     //cerr<<j<<" Norms : "<<*norm<<" "<<model[i]->mesh->normals[j]<<endl;
+            // }
+
+
+
             norm=NULL;
            //delete sharedVertexCount;
 
@@ -588,8 +602,10 @@ void ObjReader::getRawData(float *&verts, float *&normals)
         for(int i=0; i<size;i++) //for each model
         {
             int s=model[i]->mesh->numTriangles;
+
             for(int j=0;j<s;j++) //for each triangle
             {
+
                 int v0,v1,v2;
                 v0=model[i]->mesh->triangles[j*3  ];
                 v1=model[i]->mesh->triangles[j*3+1];

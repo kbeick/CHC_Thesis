@@ -2,6 +2,7 @@
 #define BBox_h
 
 #include <limits>
+#include <cmath>
 #include "utils.h"
 
 //adapted from Brandon Pelfrey
@@ -9,7 +10,7 @@
 
 
 struct BBox {
-	Vec3f min, max, extent;
+	Vec3f min, max, extent, center;
 	int count;
 	BBox() 
 	{
@@ -18,11 +19,20 @@ struct BBox {
 	BBox(const Vec3f& min, const Vec3f& max): min(min), max(max)
 	{ 
 		extent = max - min; 
+	 	center = (max+min)*.5;
 	}
 	BBox(const Vec3f& p): min(p), max(p)
 	{ 
 		extent = max - min; 
+	 	center = (max+min)*.5;
 	}
+
+
+	// Vec3f* getCenterOfBox()
+	// {
+	// 	Vec3f sum = max+min;
+	// 	return new Vec3f(sum.x/2, sum.y/2, sum.z/2);
+	// }
 
 	void expandToInclude(const Vec3f& p)
 	{
@@ -33,6 +43,7 @@ struct BBox {
 		max.y = max.y < p.y ? p.y : max.y;
 		max.z = max.z < p.z ? p.z : max.z;
 		extent = max - min;
+	 	center = (max+min)*.5;
 	}
 
 	void clear()
@@ -46,6 +57,9 @@ struct BBox {
 		extent.x=0;
 		extent.y=0;
 		extent.z=0;
+		center.x=0;
+		center.y=0;
+		center.z=0;
 		count=0;
 
 
@@ -56,6 +70,7 @@ struct BBox {
 	 	expandToInclude(b.min);
 	 	expandToInclude(b.max);
 	 	extent = max - min;
+	 	center = (max+min)*.5;
 	 	count++;
 	}
     int maxDimension() const 
@@ -72,7 +87,7 @@ struct BBox {
 	}
 
 
-	bool intersect(const ray &ray, float *tnear, float *tfar) const 
+	bool intersect(const Ray &ray, float *tnear, float *tfar) const 
 	{
 
 	  float tmin, tmax, tymin, tymax, tzmin, tzmax;
@@ -100,7 +115,7 @@ struct BBox {
 	    tmin = tzmin;
 	  if (tzmax < tmax)
 	    tmax = tzmax;
-	  // cerr << "4min: " << tmin << ", max: " << tmax << endl;	
+	  // cerr << "min: " << tmin << ", max: " << tmax << endl;	
 	  *tnear=tmin;
 	  *tfar =tmax;
 	  return ( (tmin < std::numeric_limits<float>::max()) && (tmax > std::numeric_limits<float>::min()) );
@@ -109,30 +124,60 @@ struct BBox {
 	bool intersect(const Vec3f rayDir,const Vec3f rayOrigin, const Vec3f inv_direction,
 		const int * sign , float *tnear, float *tfar) const 
 	{
-	  float tmin, tmax, tymin, tymax, tzmin, tzmax;
+	  float tmin, tmax, txmin, txmax, tymin, tymax, tzmin, tzmax;
 	  Vec3f parameters[]={min,max};
-	  //Vec3f inv_direction( 1.0/rayDir.x, 1.0/rayDir.y, 1.0/rayDir.z );
 
-	  tmin =  ((parameters[  sign[0]].x - rayOrigin.x) * inv_direction.x);
-	  tmax =  ((parameters[1-sign[0]].x - rayOrigin.x) * inv_direction.x);
-	  tymin = ((parameters[  sign[1]].y - rayOrigin.y) * inv_direction.y);
-	  tymax = ((parameters[1-sign[1]].y - rayOrigin.y) * inv_direction.y);
-	  if ( (tmin > tymax) || (tymin > tmax) ) 
+	  // cerr << "rayOrigin " << rayOrigin << endl;
+	  // cerr << "inv_direction " << inv_direction << endl;  
+
+	  tmin = txmin = ((parameters[  sign[0]].x - rayOrigin.x) * inv_direction.x);
+	  tmax = txmax = ((parameters[1-sign[0]].x - rayOrigin.x) * inv_direction.x);
+	  tymin =		 ((parameters[  sign[1]].y - rayOrigin.y) * inv_direction.y);
+	  tymax = 		 ((parameters[1-sign[1]].y - rayOrigin.y) * inv_direction.y);
+	  // cerr << "tmin " << tmin << " tmax " << tmax << endl;
+	  if ( (tmin > tymax) || (tymin > tmax) ) {
+	  	// cerr << "false 1" << endl;
 	    return false;
+	  }
 	  if (tymin > tmin)
 	    tmin = tymin;
 	  if (tymax < tmax)
 	    tmax = tymax;
+	  // cerr << "tmin " << tmin << " tmax " << tmax << endl;
 	  tzmin = ((parameters[  sign[2]].z - rayOrigin.z) * inv_direction.z);
 	  tzmax = ((parameters[1-sign[2]].z - rayOrigin.z) * inv_direction.z);
-	  if ( (tmin > tzmax) || (tzmin > tmax) ) 
+	  if ( (tmin > tzmax) || (tzmin > tmax) ) {
+	  	// cerr << "false 2" << endl;
+	  	// if((tmin > tzmax)) cerr << "(tmin > tzmax) is true" << endl;
+	  	// if((tzmin > tmax)) cerr << "(tzmin > tmax) is true : tzmin " << tzmin << " tmax " << tmax << endl;
 	    return false;
+	  }
 	  if (tzmin > tmin)
 	    tmin = tzmin;
 	  if (tzmax < tmax)
 	    tmax = tzmax;
-	  *tnear=tmin;
-	  *tfar =tmax;
+
+
+		// find the distances from ray source to the front and back faces of BBox
+	  // txmin = (parameters[  sign[0]].x - rayOrigin.x);
+	  // txmax = (parameters[1-sign[0]].x - rayOrigin.x);
+	  // tymin = (parameters[  sign[1]].y - rayOrigin.y);
+	  // tymax = (parameters[1-sign[1]].y - rayOrigin.y);
+	  // tzmin = (parameters[  sign[2]].z - rayOrigin.z);
+	  // tzmax = (parameters[1-sign[2]].z - rayOrigin.z);
+
+	  // cerr << "txmin " << txmin << " tymin " << tymin << " tzmin " << tzmin << endl;
+	  // cerr << "txmax " << txmax << " tymax " << tymax << " tzmax " << tzmax << endl;
+
+	  // *tnear= sqrt( pow(txmin, 2) + pow(tymin, 2) + pow(tzmin, 2) );
+	  // *tfar = sqrt( pow(txmax, 2) + pow(tymax, 2) + pow(tzmax, 2) );
+
+	  *tnear = tmin;
+	  *tfar = tmax;
+	  // cerr << "tmin " << tmin << " tmax " << tmax << endl;
+
+	  // INTERSECTION WITHIN SOME DISTANCE PARAMS
+
 	  return ( (tmin < std::numeric_limits<float>::max()) && (tmax > std::numeric_limits<float>::min()) );
 	}
 
@@ -169,7 +214,17 @@ struct BBox {
 	}
 };
 
-
+ostream& operator<<(ostream& out, const BBox& x ) 
+{
+	out << "minX is  " << x.min.x << endl;
+	out << "maxX is  " << x.max.x << endl;
+	out << "minY is  " << x.min.y << endl;
+	out << "maxY is  " << x.max.y << endl;
+	out << "minZ is  " << x.min.z << endl;
+	out << "maxZ is  " << x.max.z << endl;
+	
+	return out;
+}
 
 
 #endif

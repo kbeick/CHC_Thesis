@@ -1,0 +1,24 @@
+___________________________________
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+File: ./models/head/head.obj  Branching Factor: 2  Constr Method: td  Campos: 0, 0, 1  Reflect: 0.5  Opacity: 0.5
+NUMBER OF TRIANGLES: 17684
+BUILD TIME  7.25745
+AVG TRAVERSAL TIME PER PIXEL:  0.000133357
+AVG # NODES VISTED PER PIXEL:  7.34
+...................................
+___________________________________
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+File: ./models/cube/cube.obj  Branching Factor: 2  Constr Method: td  Campos: 3, 3, 3  Reflect: 0.5  Opacity: 0.5
+NUMBER OF TRIANGLES: 12
+BUILD TIME  0.000967026
+AVG TRAVERSAL TIME PER PIXEL:  1.12319e-05
+AVG # NODES VISTED PER PIXEL:  2.18
+...................................
+___________________________________
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+File: ./models/buddha/buddha.obj  Branching Factor: 2  Constr Method: td  Campos: 0, 0, 1  Reflect: 0.5  Opacity: 0.5
+NUMBER OF TRIANGLES: 1087474
+BUILD TIME  640.656
+AVG TRAVERSAL TIME PER PIXEL:  0.0611999
+AVG # NODES VISTED PER PIXEL:  20.03
+...................................

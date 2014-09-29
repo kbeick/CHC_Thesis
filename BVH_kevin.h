@@ -49,14 +49,35 @@ class BVH_Node{
 ostream& operator<<(ostream& out, const BVH_Node& x ) 
 {
 	out << "id is " << x.id << endl;
-	out << "minX is  " << x.bbox.min.x << endl;
-	out << "maxX is  " << x.bbox.max.x << endl;
-	out << "minY is  " << x.bbox.min.y << endl;
-	out << "maxY is  " << x.bbox.max.y << endl;
-	out << "minZ is  " << x.bbox.min.z << endl;
-	out << "maxZ is  " << x.bbox.max.z << endl;
+	out << "triangle_count " << x.triangle_count << endl;
+	out << x.bbox << endl;
+	// out << "maxX is  " << x.bbox.max.x << endl;
+	// out << "minY is  " << x.bbox.min.y << endl;
+	// out << "maxY is  " << x.bbox.max.y << endl;
+	// out << "minZ is  " << x.bbox.min.z << endl;
+	// out << "maxZ is  " << x.bbox.max.z << endl;
 	
 	return out;
+}
+
+// bool operator==(const BVH_Node& first, const BVH_Node& second)
+// {
+// 	cerr << "\n ==   ==   ==   ==\n";
+// 	cerr << "first: " << first;
+// 	cerr << "second: " << second << endl;
+
+// 	return false;
+// }
+
+void printBVH(BVH_Node* node)
+{
+	if(node == NULL){return;}
+
+	cout << endl << *node;
+	for (int i = 0; i < MAX_BRANCHING_FACTOR; ++i)
+	{
+		printBVH(node->children[i]);
+	}
 }
 
 int CalculateBestAxis(Triangle* triangles, int count, BBox total, int &splitPoint)
@@ -220,6 +241,32 @@ void BuildBVH_bottomup(Triangle* triangles, BVH_Node *current, BVH_Node *parent,
 							int count, int depth)
 {
 	// branching_factor = _branching_factor;
+
+	/* PSEUDO CODE */
+	// KDTree kd = new KDTree(InputPoints);
+	// MinHeap heap = new MinHeap();
+	// foreach A in InputPoints do {
+	// 	Cluster B = kd.findBestMatch(A);
+	// 	heap.add(d(A,B), new Pair(A,B));
+	// }
+	// while( kd.size() > 1 ) {
+	// 	Pair <A,B> = heap.removeMinPair();
+	// 	if (! kd.contains(A) ) {
+	// 		//A was already clustered with somebody
+ //        } else if (! kd.contains(B) ) {
+	// 		//B is invalid, find new best match for A
+	// 		B = kd.findBestMatch(A);
+	// 		heap.add(d(A,B), new Pair(A,B));
+	// 	} else {
+	// 		kd.remove(A);
+	// 		kd.remove(B);
+	// 		Cluster C = new Cluster(A,B);
+	// 		kd.add(C);
+	// 		Cluster D = kd.findBestMatch(C);
+	// 		heap.add(d(C,D), new Pair(C,D));
+	// 	}
+	// }
+
 }
 
 // void collapseBVH(BVH_Node *current, int current_branching_factor, int new_branching_factor)
@@ -229,12 +276,10 @@ void BuildBVH_bottomup(Triangle* triangles, BVH_Node *current, BVH_Node *parent,
 // 	for(int i=0; i<current_branching_factor; i++){
 // 		current->children[i]->children[0];
 // 	}
-
-
 // }
 
 
-float* bvhToFlatArray(BVH_Node *root, int &size, int branching_factor){
+float* bvhToFlatArray(BVH_Node *root, int *size, int branching_factor){
 	assert (branching_factor==2 || branching_factor==4 || branching_factor==8);
 	// INSTANTIATE LOCALS
 	root->id=0;
@@ -248,9 +293,9 @@ float* bvhToFlatArray(BVH_Node *root, int &size, int branching_factor){
 	int elements_per_inner_node = branching_factor*7;
 	int elements_per_leaf_node = 8;
 
-	size = elements_per_inner_node*inner_node_counter + elements_per_leaf_node*leafCount;
+	*size = elements_per_inner_node*inner_node_counter + elements_per_leaf_node*leafCount;
 
-	float *flat_array= new float[size];
+	float *flat_array= new float[*size];
 	int non_leaf_count=0;
 	int leaf_count=0;
 	int currentIndex=0;
@@ -295,7 +340,7 @@ float* bvhToFlatArray(BVH_Node *root, int &size, int branching_factor){
 				//cerr<<currentIndex<<endl;
 			}
 			for(int i=0; i<branching_factor; i++){
-				flat_array[++currentIndex] = -1; // to be set to the ids of children
+				flat_array[++currentIndex] = -1; // to be set to the ids of children later
 			}
 
 		}
@@ -349,6 +394,8 @@ float* bvhToFlatArray(BVH_Node *root, int &size, int branching_factor){
 	}
 	return flat_array;
 }
+
+
 
 
 #endif

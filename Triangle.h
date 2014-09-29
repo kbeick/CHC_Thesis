@@ -2,7 +2,7 @@
 #define Triangle_h
 
 #include <iostream>
-#include "ray.h"
+#include "Ray.h"
 #include "utils.h"
 #include "BBox.h"
 
@@ -19,19 +19,20 @@ class Triangle{
 		double xNorms[3];
 		double yNorms[3];
 		double zNorms[3];
+		Ray *normal;
 		unsigned int mortonCode;
 		BBox bbox;
 		
 
-		Vec3f v1() const
+		Vec3f v0() const
 		{
 			return Vec3f(X[0], Y[0], Z[0]);
 		}
-		Vec3f v2() const
+		Vec3f v1() const
 		{
 			return Vec3f(X[1], Y[1], Z[1]);
 		}
-		Vec3f v3() const
+		Vec3f v2() const
 		{
 			return Vec3f(X[2], Y[2], Z[2]);
 		}
@@ -94,36 +95,70 @@ class Triangle{
 			bbox.min=Vec3f(getXMin(),getYMin(),getZMin());
 			bbox.max=Vec3f(getXMax(),getYMax(),getZMax());
 			bbox.extent=bbox.max-bbox.min;
+	 		bbox.center = (bbox.max+bbox.min)*.5;
 		}
 
-		bool intersect(const ray &r, float* isectData) const
+		bool intersect(const Ray &r, float* isectData) const
 		{
-		    Vec3f edge1 = v2() - v1();
-		    Vec3f edge2 = v3() - v1();
-		    Vec3f pvec = crossProduct(r.unitDir.x, r.unitDir.y, r.unitDir.z, edge2.x, edge2.y, edge2.x);
-		    float det = dotProduct(edge1, pvec);
-		    if (det == 0) return false;
+			// cerr << "here in intersect. Ray is " << r;
+			// cerr << "this triangle is " << endl;
+			// print();
+
+		    Vec3f edge1 = v1() - v0();
+		    Vec3f edge2 = v2() - v0();
+		    // cerr << "edge1 " << edge1 << "   edge2 " << edge2 << endl;
+		    Vec3f* pvec = crossProduct(r.unitDir.x, r.unitDir.y, r.unitDir.z, edge2.x, edge2.y, edge2.z);
+		    // cerr << "pvec " << *pvec << endl;
+			float det = dotProduct(edge1, *pvec);
+
+			/* NON-CULLING */
+			// cerr << "now here .... det = " << det << endl;
+
+		    /* if determinant is near zero ray lies in plane of triangle */
+		    if (det < 0.000001 && det > -0.000001) return false;
 		    // ^Alternatively, could check if det is less than some small EPSILON
 		    float invDet = 1.0 / det;
-		    Vec3f tvec = r.source - v1();
-		    float u = dotProduct(tvec, pvec) * invDet;
-		    if (u < 0.0 || u > 1.0) return false;
-		    Vec3f qvec = crossProduct(tvec, edge1);
-		    float v = dotProduct(r.unitDir, qvec) * invDet;
-		    if (v < 0.0 || u + v > 1.0) return false;
-		    float t = dotProduct(edge2, qvec) * invDet;
+		    Vec3f tvec = r.source - v0(); /* Distance from v0 to ray origin */
+		    float u = dotProduct(tvec, *pvec) * invDet;
 
-		    if(t > 0.0){
+			// cerr << "and here .... u =" << u << endl;
+
+		    if (u < 0.0 || u > 1.0) return false;
+
+			// cerr << "and here" << endl;
+
+			Vec3f* qvec = crossProduct(tvec, edge1);
+		    float v = dotProduct(r.unitDir, *qvec) * invDet;
+		    if (v < 0.0 || u + v > 1.0) return false;
+		    float t = dotProduct(edge2, *qvec) * invDet;
+
+		    // cerr << "Triangle intersect got t = " << t << endl;
+
+		    if(t > 0.000001){
 		    	*isectData = t;
 		    	return true;
 		    }
 		    return false;
 		}
 
+		void print() const
+		{
+			cerr << "ID " << id << endl;
+			cerr << "X values are  " << this->X[0] << " " << this->X[1] << " " << this->X[2] << endl;
+			cerr << "Y values are  " << this->Y[0] << " " << this->Y[1] << " " << this->Y[2] << endl;
+			cerr << "Z values are  " << this->Z[0] << " " << this->Z[1] << " " << this->Z[2] << endl;
+		}
+
 		int id;
 };
 
-void CreateTriangleArray(Triangle *triangles, int numTriangles, float *verts)
+void GetTriangleFromID(Triangle *triangles, int numTriangles, int ID, Triangle *result){
+	for(int i=0; i<numTriangles; i++){
+		if(triangles[i].id == ID){ *result = triangles[i]; }
+	}
+}
+
+void CreateTriangleArray(Triangle *triangles, int numTriangles, float *verts, float *norms)
 {	
 	//triangles= new Triangle[numTriangles];
 	for(int triIndex = 0; triIndex < numTriangles; triIndex++){
@@ -143,6 +178,27 @@ void CreateTriangleArray(Triangle *triangles, int numTriangles, float *verts)
 		triangles[triIndex].id=triIndex;
 		triangles[triIndex].calcCentroid();
 		triangles[triIndex].setBbox();
+
+		/* add normals */
+		triangles[triIndex].xNorms[0] = norms[triIndex*9];
+	    triangles[triIndex].yNorms[0] = norms[triIndex*9+1];
+	    triangles[triIndex].zNorms[0] = norms[triIndex*9+2];
+	    
+	    triangles[triIndex].xNorms[1] = norms[triIndex*9+3];
+	    triangles[triIndex].yNorms[1] = norms[triIndex*9+4];
+	    triangles[triIndex].zNorms[1] = norms[triIndex*9+5];
+	    
+	    triangles[triIndex].xNorms[2] = norms[triIndex*9+6];
+	    triangles[triIndex].yNorms[2] = norms[triIndex*9+7];
+	    triangles[triIndex].zNorms[2] = norms[triIndex*9+8];
+
+	    // Ray v1Norm = Ray(Vec3f(triangles[triIndex].c[0], triangles[triIndex].c[1], triangles[triIndex].c[2]),
+	    // 				 Vec3f(triangles[triIndex].xNorms[0], triangles[triIndex].yNorms[0], triangles[triIndex].zNorms[0]));
+
+	    // Norm direction is being determined by only vertex
+	    triangles[triIndex].normal = new Ray(Vec3f(triangles[triIndex].c[0], triangles[triIndex].c[1], triangles[triIndex].c[2]),
+	    									 Vec3f(triangles[triIndex].xNorms[0], triangles[triIndex].yNorms[0], triangles[triIndex].zNorms[0]));
+
 	}
 }
 
@@ -239,4 +295,5 @@ ostream& operator<<(ostream& out, const Triangle& x )
 	out << "Z values are  " << x.Z[0] << " " << x.Z[1] << " " << x.Z[2] << endl;
 	return out;
 }
+
 #endif

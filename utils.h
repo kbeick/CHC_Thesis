@@ -5,6 +5,7 @@
 #include <iostream>
 
 
+
 template<typename T>
 class Vec2
 {
@@ -48,12 +49,17 @@ public:
     Vec3f operator-(const Vec3f&) const;
     void  operator-=(const Vec3f&);
 
+    Vec3f operator+(const Vec3f&) const;
+    void  operator+=(const Vec3f&);
+
+    Vec3f operator*(double a) const;
+    void  operator*=(double a);
+
     float& operator[] (int i) {
         assert (i>=0 && i<3);
-        if( i==0 ) return x;
+        if     ( i==0 ) return x;
         else if( i==1 ) return y;
-        else if( i==2 ) return z;
-        //shouldn't get here
+        else            return z;
     }
   
 };
@@ -73,6 +79,30 @@ Vec3f::operator-=(const Vec3f &r)
     x -= r.x;
     y -= r.y;
     z -= r.z;
+}
+Vec3f
+Vec3f::operator+(const Vec3f &r) const
+{
+    return Vec3f(x+r.x, y+r.y, z+r.z);
+}
+void
+Vec3f::operator+=(const Vec3f &r)
+{
+    x += r.x;
+    y += r.y;
+    z += r.z;
+}
+Vec3f
+Vec3f::operator*(double a) const
+{
+    return Vec3f(x*a, y*a, z*a);
+}
+void
+Vec3f::operator*=(double a)
+{
+    x *= a;
+    y *= a;
+    z *= a;
 }
 // Vec3f
 // Vec3f::crossProduct(const Vec3f &r) const
@@ -103,31 +133,38 @@ double floor441(double f)
     return floor(f+0.00001);
 }
 
-double dotProd(double A[], double B[])
+float dotProd(double A[], double B[])
 {
     return A[0]*B[0] + A[1]*B[1] + A[2]*B[2];
 }
 
-double dotProduct(Vec3f A, Vec3f B)
+float dotProduct(Vec3f A, Vec3f B)
 {
     return A.x*B.x + A.y*B.y + A.z*B.z;
 }
 
-Vec3f crossProduct(float Ax, float Ay, float Az, float Bx, float By, float Bz)
+Vec3f* crossProduct(float Ax, float Ay, float Az, float Bx, float By, float Bz)
 {
-    Vec3f vector;
-    vector.x = (Ay*Bz)-(By*Az);
-    vector.y = -(Ax*Bz)+(Bx*Az);
-    vector.z = (Ax*By)-(Ay*Bx);
+    Vec3f* vector = new Vec3f((Ay*Bz) - (Az*By), (Az*Bx) - (Ax*Bz), (Ax*By) - (Ay*Bx));
     return vector;
 }
-Vec3f crossProduct(const Vec3f &l, const Vec3f &r)
+Vec3f* crossProduct(const Vec3f &l, const Vec3f &r)
 {
-    Vec3f v;
-    v.x = l.y*r.z - l.z*r.y;
-    v.y = l.z*r.x - l.x*r.z;
-    v.z = l.x*r.y - l.y*r.x;
+    Vec3f* v = new Vec3f((l.y*r.z) - (l.z*r.y), (l.z*r.x) - (l.x*r.z), (l.x*r.y) - (l.y*r.x));
     return v;
+}
+
+Vec3f* crossProductNormalized(const Vec3f &l, const Vec3f &r)
+{
+    Vec3f* result = crossProduct(l,r);
+    
+    double norm = sqrt( pow(result->x, 2.) + pow(result->y, 2.) + pow(result->z, 2.) );
+
+    result->x = result->x/norm;
+    result->y = result->y/norm;
+    result->z = result->z/norm;
+
+    return result;
 }
 
 /* Returns  an array
@@ -162,6 +199,19 @@ double* quadraticSolver(double a, double b, double c)
     return result;
 }
 
+
+bool HasDuplicates(std::vector<float> array, int count, int *guilty_index)
+{
+    for (int i = 0; i < count; i++) {
+        for (int j = i + 1; j < count; j++) {
+            if (array[i] == array[j]) {
+                *guilty_index = i;
+                return true;
+            }
+        }
+    }
+    return false;
+}
 
 
 #endif
