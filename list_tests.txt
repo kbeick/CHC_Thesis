@@ -4,6 +4,8 @@
 
 #./CHC_Thesis.app/Contents/MacOS/CHC_Thesis ./models/head/head.obj   2   td   0 0 1         1   0.0
 
+#./CHC_Thesis.app/Contents/MacOS/CHC_Thesis ./models/head/head.obj   2   bu   0 0 1         1   0.0
+
 #./CHC_Thesis.app/Contents/MacOS/CHC_Thesis ./models/buddha/buddha.obj  2   td   .5 0 -2    2   0.0
 
 

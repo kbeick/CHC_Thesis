@@ -37,8 +37,8 @@ struct LightingParameters
 string USAGE_MSG = "USAGE: ./CHC_Thesis.app <model filename> <children per node (int)> <construction method (td or bu)> <camera pos (3 whitespace separated floats)> <numReflections (int)> <opacity (float)>\n";
 
 bool PRODUCE_IMAGE = true;
-int IMAGE_WIDTH =  400;
-int IMAGE_HEIGHT = 400;
+int IMAGE_WIDTH =  100;
+int IMAGE_HEIGHT = 100;
 double GLOBAL_REFLECT_COEF = 0.2;        /* Global Reflectivity */
 
 int branching_factor = 0;           // Children per Node

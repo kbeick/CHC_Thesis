@@ -83,18 +83,20 @@ void BuildBVH_bottomup(Triangle* triangles, BVH_Node **root, int count)
 
         node->id = new_id++;
         kd_size++;
+        leafCount++;
         InputNodes[t] = *node;
         // cerr << "kd_size = " << kd_size << endl;
     }
     /* Maybe the best option is to merge nodes to get ones with mult triangles at this point. Similar process to while loop below,
         merging neighbor nodes to get nodes w/ 4 trianges instead of making neighboring child of the same parent. */
 
+
     /* The 'min heap' stores the best match for each active cluster along with the corresponding distance */
     std::priority_queue<Pair, vector<Pair>, ComparePair> pq;
     for(int i=0; i<numTriangles; i++){
         BVH_Node *A = &InputNodes[i];
         set = kd_nearest_range3f(kd, A->bbox.center.x, A->bbox.center.y, A->bbox.center.z, 3.0);
-        cerr << "A B res size " << kd_res_size(set) << endl;
+        // cerr << "A B res size " << kd_res_size(set) << endl;
 
         BVH_Node *B = kd_res_item_data(set);
         while(B->id == A->id){
@@ -120,36 +122,36 @@ void BuildBVH_bottomup(Triangle* triangles, BVH_Node **root, int count)
 
     while(kd_size > 1){
 
-        cerr << "\nkd size = " << kd_size << endl;
+        // cerr << "\nkd size = " << kd_size << endl;
 
         struct kdnode *foundA = (kdnode *)malloc(sizeof *foundA);
         struct kdnode *foundB = (kdnode *)malloc(sizeof *foundB);
         struct Pair pair = pq.top();
         pq.pop();
 
-        cerr << "pair.A: " << *pair.A;
-        cerr << "pair.B: " << *pair.B;
+        // cerr << "pair.A: " << *pair.A;
+        // cerr << "pair.B: " << *pair.B;
 
         if(! kd_contains(kd, pair.A, &foundA)){
-            cerr << "A not in kd" << endl;
+            // cerr << "A not in kd" << endl;
             //A was already clustered with somebody
         }else if(! kd_contains(kd, pair.B, &foundB)){
-            cerr << "B invalid, find new match" << endl;
+            // cerr << "B invalid, find new match" << endl;
             //B is invalid, find new best match for A
             set = kd_nearest_range3f(kd, pair.A->bbox.center.x, pair.A->bbox.center.y, pair.A->bbox.center.z, 3.0);
             BVH_Node *C = kd_res_item_data(set);
-            cerr << "pair.A->id " << pair.A->id << ", C->id " << C->id << endl;
+            // cerr << "pair.A->id " << pair.A->id << ", C->id " << C->id << endl;
             while(pair.A->id == C->id){
                 if(kd_res_next(set)){
                     C = kd_res_item_data(set);
                 }else{cerr << "well crapo. BottomUpConstructor line ~140" << endl;}
             }
-            cerr << "NOW pair.A->id " << pair.A->id << ", C->id " << C->id << endl;
+            // cerr << "NOW pair.A->id " << pair.A->id << ", C->id " << C->id << endl;
             dist = sqrt(SQ(pair.A->bbox.center.x - C->bbox.center.x) + SQ(pair.A->bbox.center.y - C->bbox.center.y) + SQ(pair.A->bbox.center.z - C->bbox.center.z));
             Pair newPair = {dist, pair.A, C};
             pq.push(newPair);
         } else {
-            cerr << "proceed as normal" << endl;
+            // cerr << "proceed as normal" << endl;
 
             // cerr << "foundA: " << foundA->data << endl;
             // cerr << "foundB: " << foundB->data << endl;
@@ -158,7 +160,7 @@ void BuildBVH_bottomup(Triangle* triangles, BVH_Node **root, int count)
             foundB->deleted = true;
             kd_size -= 2;
 
-            cerr << "deleted A and B" << endl;
+            // cerr << "deleted A and B" << endl;
 
             BVH_Node *C = new BVH_Node();
             C->id = new_id++;
@@ -171,25 +173,41 @@ void BuildBVH_bottomup(Triangle* triangles, BVH_Node **root, int count)
             pair.A->parent = C;
             pair.B->parent = C;
 
-            cerr << "did some more crap" << endl;
+            /* GIVE FINAL IDs */
+            if(pair.A->children[0]==NULL && pair.A->children[1]==NULL ){
+                // LEAF
+                pair.A->id = -1;
+            }else{
+                pair.A->id = inner_node_counter++;
+            }
+            if(pair.B->children[0]==NULL && pair.B->children[1]==NULL ){
+                // LEAF
+                pair.B->id = -1;
+            }else{
+                pair.B->id = inner_node_counter++;
+            }
+
 
             // assert(kd_insert3f(kd, C->bbox.center.x, C->bbox.center.y, C->bbox.center.z, C));
             kd_insert3f(kd, C->bbox.center.x, C->bbox.center.y, C->bbox.center.z, C);
             kd_size++;
-            cerr << "added new node to kd" << endl;
+            // cerr << "added new node to kd" << endl;
 
-            if(kd_size <= 1){ continue; }
+            if(kd_size <= 1){ 
+                C->id = inner_node_counter++;
+                continue;
+            }
 
             set = kd_nearest_range3f(kd, C->bbox.center.x, C->bbox.center.y, C->bbox.center.z, 10.0);
-            cerr << "C D res size " << kd_res_size(set) << endl;
+            // cerr << "C D res size " << kd_res_size(set) << endl;
             BVH_Node *D = kd_res_item_data(set);
-            cerr << "C->id " << C->id << ", D->id " << D->id << endl;
+            // cerr << "C->id " << C->id << ", D->id " << D->id << endl;
             while(D->id == C->id){
                 if(kd_res_next(set)){
                     D = kd_res_item_data(set);
                 }else{cerr << "well crapo. BottomUpConstructor line ~180" << endl;}
             }
-            cerr << "NOW C->id " << C->id << ", D->id " << D->id << endl;
+            // cerr << "NOW C->id " << C->id << ", D->id " << D->id << endl;
 
             if(D != NULL){
                 //get distance between C,D
