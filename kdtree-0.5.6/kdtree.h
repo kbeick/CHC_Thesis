@@ -67,16 +67,7 @@ int kd_insert3f(struct kdtree *tree, float x, float y, float z, BVH_Node *data);
 bool kd_contains(struct kdtree *tree, BVH_Node *data, struct kdnode **found);
 bool kd_contains_helper(struct kdnode *node, BVH_Node *data, struct kdnode **found);
 
-/* Kevin Beick Added
- * Attempts to remove node with pointer to data, if present.
- * If not present, does nothing, returns false.
- */
-// bool kd_remove_node(struct kdtree *tree, void *data);
-// bool kd_remove_node_helper(struct kdnode *node, void *data);
-
-// struct kdnode* findmin(struct kdnode *node);
-// struct kdnode* findmax(struct kdnode *node);
-
+BVH_Node* kd_find_best_match(struct kdtree *tree, BVH_Node *A);
 
 
 /* Find the nearest node from a given point.

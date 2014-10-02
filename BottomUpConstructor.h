@@ -14,20 +14,56 @@ public:
     }
 };
 
-BVH_Node* SetUpNodeFor_BottomUp(Triangle* triangles, int numTriangles)
+BVH_Node* SetUpNodeFor_BottomUp(Triangle* triangles)
 {
+    /* ONE TRIANGLE PER NODE TO START */
     BVH_Node *node = new BVH_Node();
-    node->triangle_count = numTriangles;
+    node->triangle_count = 1;
     node->triangles = triangles;
-
-    //find the total bbox for the array
     node->bbox = triangles[0].bbox;
-    for(int i=1; i<numTriangles; i++)
-    {   
-        node->bbox.expandToInclude(triangles[i].bbox);
-    }
 
     return node;
+}
+
+void MakeNewPair(struct Pair *pair, BVH_Node *A, BVH_Node *B)
+{
+    //get distance between A,B
+    float dist = sqrt(SQ(A->bbox.center.x - B->bbox.center.x) + SQ(A->bbox.center.y - B->bbox.center.y) + SQ(A->bbox.center.z - B->bbox.center.z));
+    Pair newPair = {dist, A, B};
+    *pair = newPair;
+}
+
+void LoadHeap(BVH_Node* input, int size, struct kdtree* tree, std::priority_queue<Pair, vector<Pair>, ComparePair>* pq)
+{
+    for(int i=0; i<size; i++){
+        BVH_Node *A = &input[i];
+        BVH_Node *B = kd_find_best_match(tree, A);
+
+        Pair newPair;
+        MakeNewPair(&newPair, A, B);
+        pq->push(newPair);
+        // cerr << "pushed new pair" << endl;
+        // *input[i] = 0;
+    }
+}
+
+BVH_Node* MergeNodes(BVH_Node* A, BVH_Node* B)
+{
+    BVH_Node *mergedNode = new BVH_Node();
+    mergedNode->id = -1;
+    mergedNode->parent = NULL;
+    mergedNode->triangle_count = A->triangle_count + B->triangle_count;
+    mergedNode->triangles = new Triangle[mergedNode->triangle_count];
+    for(int t=0; t<A->triangle_count; t++){
+        mergedNode->triangles[t] = A->triangles[t];
+    }
+    for(int t=0; t<B->triangle_count; t++){
+        mergedNode->triangles[A->triangle_count+t] = B->triangles[t];
+    }
+    mergedNode->bbox = A->bbox;
+    mergedNode->bbox.expandToInclude(B->bbox);
+
+    return mergedNode;
 }
 
 
@@ -38,12 +74,17 @@ BVH_Node* SetUpNodeFor_BottomUp(Triangle* triangles, int numTriangles)
 */
 void BuildBVH_bottomup(Triangle* triangles, BVH_Node **root, int count)
 {
-    struct kdtree *kd;
+    BVH_Node* InputNodes = new BVH_Node[count];
     struct kdres *set;
     float dist;
-    int kd_size = 0;
     int new_id = 0;
-    BVH_Node* InputNodes = new BVH_Node[count];
+
+    struct kdtree *first_tree, *kd;
+    int first_tree_size = 0;
+    int kd_size= 0;
+
+    struct kdnode *foundA = (kdnode *)malloc(sizeof *foundA);
+    struct kdnode *foundB = (kdnode *)malloc(sizeof *foundB);
 
     /* PSEUDO CODE */
     // KDTree kd = new KDTree(InputPoints);
@@ -71,61 +112,140 @@ void BuildBVH_bottomup(Triangle* triangles, BVH_Node **root, int count)
     // }
 
     /* The idea is to use a simple-to-build but lower quality clustering tree to bootstrap the consction of a higher quality tree */
+    first_tree = kd_create(3);
     kd = kd_create(3);
-    int triangles_per_node = 1;
     for(int t=0; t < numTriangles; t++){
         /* Make a BVH_Node for each triangle */
-        BVH_Node* node = SetUpNodeFor_BottomUp(&triangles[t*triangles_per_node], triangles_per_node);
+        BVH_Node* node = SetUpNodeFor_BottomUp(&triangles[t]);
         // node->id = i;
-        kd_insert3f(kd, node->triangles[0].c[0], node->triangles[0].c[1], node->triangles[0].c[2], node); // for nodes w/ multiple triangles, need to find 3D point differently
-        // assert(kd_insert3f(kd, node->triangles[0].c[0], node->triangles[0].c[1], node->triangles[0].c[2], node)); // for nodes w/ multiple triangles, need to find 3D point differently
+        kd_insert3f(first_tree, node->triangles[0].c[0], node->triangles[0].c[1], node->triangles[0].c[2], node);
         // cerr << "added node at " << node->triangles[0].c[0] << ", " << node->triangles[0].c[1] << ", " <<node->triangles[0].c[2] << endl;
 
         node->id = new_id++;
-        kd_size++;
         leafCount++;
+        first_tree_size++;
         InputNodes[t] = *node;
-        // cerr << "kd_size = " << kd_size << endl;
     }
-    /* Maybe the best option is to merge nodes to get ones with mult triangles at this point. Similar process to while loop below,
-        merging neighbor nodes to get nodes w/ 4 trianges instead of making neighboring child of the same parent. */
-
 
     /* The 'min heap' stores the best match for each active cluster along with the corresponding distance */
-    std::priority_queue<Pair, vector<Pair>, ComparePair> pq;
-    for(int i=0; i<numTriangles; i++){
-        BVH_Node *A = &InputNodes[i];
-        set = kd_nearest_range3f(kd, A->bbox.center.x, A->bbox.center.y, A->bbox.center.z, 3.0);
-        // cerr << "A B res size " << kd_res_size(set) << endl;
+    std::priority_queue<Pair, vector<Pair>, ComparePair> first_pq;
+    LoadHeap(InputNodes, first_tree_size, first_tree, &first_pq);
+    // for(int i=0; i<numTriangles; i++){
+    //     BVH_Node *A = &InputNodes[i];
+    //     BVH_Node *B = kd_find_best_match(first_tree, A);
 
-        BVH_Node *B = kd_res_item_data(set);
-        while(B->id == A->id){
-            if(kd_res_next(set)){
-                B = kd_res_item_data(set);
-            }else{cerr << "well crapo. BottomUpConstructor line ~100" << endl;}
+    //     // cerr << "A's center is " << A->bbox.center << endl;
+    //     // cerr << "A: " << *A;
+    //     // cerr << "B: " << *B;
+
+    //     Pair newPair;
+    //     MakeNewPair(&newPair, A, B);
+    //     first_pq.push(newPair);
+    //     // cerr << "pushed new pair" << endl;
+    //     InputNodes[i] = NULL;
+    // }
+    cerr << "done pushing pairs" << endl;
+
+
+    /* Maybe the best option is to merge nodes to get ones with mult triangles at this point. Similar process to while loop below,
+        merging neighbor nodes to get nodes w/ 4 trianges instead of making neighboring child of the same parent. */
+    while(first_tree_size > 1){ /* 1:1 triangles:nodes */
+
+        cerr << "first_tree_size = " << first_tree_size << endl;
+
+        struct Pair pair = first_pq.top();
+        first_pq.pop();
+
+        if(! kd_contains(first_tree, pair.A, &foundA)){
+            //A was already clustered with somebody
+        }else if(! kd_contains(first_tree, pair.B, &foundB)){
+            //B is invalid, find new best match for A
+            BVH_Node *C = kd_find_best_match(first_tree, pair.A);
+            Pair newPair;
+            MakeNewPair(&newPair, pair.A, C);
+            first_pq.push(newPair);
+        } else {
+            foundA->deleted = true;
+            foundB->deleted = true;
+            first_tree_size -= 2;
+
+            if(pair.A->triangle_count + pair.B->triangle_count <= LEAF_SIZE){
+            /* Want to merge these nodes */
+                BVH_Node *mergedNode = MergeNodes(pair.A, pair.B);
+                leafCount--; /* merged two into one */
+
+                if(mergedNode->triangle_count == LEAF_SIZE){
+                /* This is a proper leaf, add it to second phase datastructs */
+                    kd_insert3f(kd, mergedNode->bbox.center.x, mergedNode->bbox.center.y, mergedNode->bbox.center.z, mergedNode);
+                    InputNodes[kd_size++] = *mergedNode;
+                }else{
+                    kd_insert3f(first_tree, mergedNode->bbox.center.x, mergedNode->bbox.center.y, mergedNode->bbox.center.z, mergedNode);
+                    first_tree_size++;
+
+                    BVH_Node *buddy = kd_find_best_match(first_tree, mergedNode);
+                    if(buddy != NULL){
+                        Pair newPair;
+                        MakeNewPair(&newPair, mergedNode, buddy);
+                        first_pq.push(newPair);
+                    }
+                }
+
+            }else if(first_tree_size <= 0){
+            /* If this pair is the last two nodes in the tree */
+                kd_insert3f(kd, pair.A->triangles[0].c[0], pair.A->triangles[0].c[1], pair.A->triangles[0].c[2], pair.A);
+                InputNodes[kd_size++] = *pair.A;
+                kd_insert3f(kd, pair.B->triangles[0].c[0], pair.B->triangles[0].c[1], pair.B->triangles[0].c[2], pair.B);
+                InputNodes[kd_size++] = *pair.B;
+
+            /* We want to set the larger of the two nodes into the next pq, we're done with it in this phase */
+            }else if(pair.A->triangle_count >= pair.B->triangle_count){
+                /* A moves on, B goes into first tree/pq again */
+                kd_insert3f(kd, pair.A->triangles[0].c[0], pair.A->triangles[0].c[1], pair.A->triangles[0].c[2], pair.A);
+                InputNodes[kd_size++] = *pair.A;
+
+                foundB->deleted = false;
+                first_tree_size++;
+
+                BVH_Node *buddy = kd_find_best_match(first_tree, pair.B);
+                if(buddy != NULL){
+                    Pair newPair;
+                    MakeNewPair(&newPair, pair.B, buddy);
+                    first_pq.push(newPair);
+                }
+            }else{
+                /* B moves on, A goes into first tree/pq again */
+                kd_insert3f(kd, pair.B->triangles[0].c[0], pair.B->triangles[0].c[1], pair.B->triangles[0].c[2], pair.B);
+                InputNodes[kd_size++] = *pair.B;
+
+                foundA->deleted = false;
+                first_tree_size++;
+
+                BVH_Node *buddy = kd_find_best_match(first_tree, pair.A);
+                if(buddy != NULL){
+                    Pair newPair;
+                    MakeNewPair(&newPair, pair.A, buddy);
+                    first_pq.push(newPair);
+                }
+
+            }
         }
-
-        // cerr << "A's center is " << A->bbox.center << endl;
-        // cerr << "A: " << *A;
-        // cerr << "B: " << *B;
-
-        //get distance between A,B
-        dist = sqrt(SQ(A->bbox.center.x - B->bbox.center.x) + SQ(A->bbox.center.y - B->bbox.center.y) + SQ(A->bbox.center.z - B->bbox.center.z));
-
-        Pair newPair = {dist, A, B};
-        pq.push(newPair);
-        // cerr << "pushed new pair" << endl;
-        kd_res_free(set);
+    }
+    if(first_tree_size==1){
+        set = kd_nearest3f(first_tree, 0, 0, 0);
+        BVH_Node *loner = kd_res_item_data(set); 
+        kd_insert3f(kd, loner->triangles[0].c[0], loner->triangles[0].c[1], loner->triangles[0].c[2], loner);
+        InputNodes[kd_size++] = *loner;
     }
 
-    // cerr << "done pushing pairs" << endl;
+    cerr << "Starting Phase 2" << endl;
+
+
+    std::priority_queue<Pair, vector<Pair>, ComparePair> pq;
+    LoadHeap(InputNodes, kd_size, kd, &pq);
 
     while(kd_size > 1){
 
         // cerr << "\nkd size = " << kd_size << endl;
-
-        struct kdnode *foundA = (kdnode *)malloc(sizeof *foundA);
-        struct kdnode *foundB = (kdnode *)malloc(sizeof *foundB);
         struct Pair pair = pq.top();
         pq.pop();
 
@@ -138,17 +258,10 @@ void BuildBVH_bottomup(Triangle* triangles, BVH_Node **root, int count)
         }else if(! kd_contains(kd, pair.B, &foundB)){
             // cerr << "B invalid, find new match" << endl;
             //B is invalid, find new best match for A
-            set = kd_nearest_range3f(kd, pair.A->bbox.center.x, pair.A->bbox.center.y, pair.A->bbox.center.z, 3.0);
-            BVH_Node *C = kd_res_item_data(set);
-            // cerr << "pair.A->id " << pair.A->id << ", C->id " << C->id << endl;
-            while(pair.A->id == C->id){
-                if(kd_res_next(set)){
-                    C = kd_res_item_data(set);
-                }else{cerr << "well crapo. BottomUpConstructor line ~140" << endl;}
-            }
+            BVH_Node *C = kd_find_best_match(kd, pair.A);
             // cerr << "NOW pair.A->id " << pair.A->id << ", C->id " << C->id << endl;
-            dist = sqrt(SQ(pair.A->bbox.center.x - C->bbox.center.x) + SQ(pair.A->bbox.center.y - C->bbox.center.y) + SQ(pair.A->bbox.center.z - C->bbox.center.z));
-            Pair newPair = {dist, pair.A, C};
+            Pair newPair;
+            MakeNewPair(&newPair, pair.A, C);
             pq.push(newPair);
         } else {
             // cerr << "proceed as normal" << endl;
@@ -188,7 +301,6 @@ void BuildBVH_bottomup(Triangle* triangles, BVH_Node **root, int count)
             }
 
 
-            // assert(kd_insert3f(kd, C->bbox.center.x, C->bbox.center.y, C->bbox.center.z, C));
             kd_insert3f(kd, C->bbox.center.x, C->bbox.center.y, C->bbox.center.z, C);
             kd_size++;
             // cerr << "added new node to kd" << endl;
@@ -198,25 +310,14 @@ void BuildBVH_bottomup(Triangle* triangles, BVH_Node **root, int count)
                 continue;
             }
 
-            set = kd_nearest_range3f(kd, C->bbox.center.x, C->bbox.center.y, C->bbox.center.z, 10.0);
-            // cerr << "C D res size " << kd_res_size(set) << endl;
-            BVH_Node *D = kd_res_item_data(set);
-            // cerr << "C->id " << C->id << ", D->id " << D->id << endl;
-            while(D->id == C->id){
-                if(kd_res_next(set)){
-                    D = kd_res_item_data(set);
-                }else{cerr << "well crapo. BottomUpConstructor line ~180" << endl;}
-            }
+            BVH_Node *D = kd_find_best_match(kd, C);
             // cerr << "NOW C->id " << C->id << ", D->id " << D->id << endl;
 
             if(D != NULL){
-                //get distance between C,D
-                dist = sqrt(SQ(C->bbox.center.x - D->bbox.center.x) + SQ(C->bbox.center.y - D->bbox.center.y) + SQ(C->bbox.center.z - D->bbox.center.z));
-
-                struct Pair newPair = {dist, C, D};
+                Pair newPair;
+                MakeNewPair(&newPair, C, D);
                 pq.push(newPair);
             }
-            kd_res_free(set);
         }
     }
 

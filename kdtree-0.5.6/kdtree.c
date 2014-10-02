@@ -278,47 +278,27 @@ bool kd_contains_helper(struct kdnode *node, BVH_Node *data, struct kdnode **fou
  	// cerr << "data: ID " << data->id << " ; at " << data<< endl;
 
  	if (node->data->id == data->id && node->deleted == false){
- 		*found = node;
+ 		if (found!=0){ *found = node; }
  		// cerr << "found now points at " << *found->data << " ; at " << found->data << endl;
  		return true;
  	}
  	// else
  	return kd_contains_helper(node->left, data, found) || kd_contains_helper(node->right, data, found);
 }
-
-/* Kevin Beick Added
- * Attempts to remove node with pointer to data, if present.
- * If not present, does nothing, returns false.
- */
- // bool kd_remove_node(struct kdtree *tree, void *data)
- // {
- // 	return kd_remove_node_helper(tree->root, data);
- // }
- // bool kd_remove_node_helper(struct kdnode *node, void *data)
- // {
- // 	if (node == 0){ return false; }
- // 	if (*(node->data) == *data){ 
-
- // 		if(node->left == 0 && node->right == 0){ return false; }
- // 		if(node->left != 0){
- // 		}
-
-	// }
- // 	//else 	
- // 	return kd_remove_node_helper(node->left, data) || kd_remove_node_helper(node->right, data);
- // }
- // struct kdnode* findmin(struct kdnode *node)
- // {
- // 	if(node->left == 0){ return node; }
- // 	return findmin(node->left);
- // }
- // struct kdnode* findmax(struct kdnode *node)
- // {
- // 	if(node->right == 0){ return node; }
- // 	return findmin(node->right);
- // }
-
-
+BVH_Node* kd_find_best_match(struct kdtree *tree, BVH_Node *A)
+{
+    struct kdres *set;
+    set = kd_nearest_range3f(tree, A->bbox.center.x, A->bbox.center.y, A->bbox.center.z, 10.0);
+    BVH_Node *C = kd_res_item_data(set);
+    // cerr << "pair.A->id " << pair.A->id << ", C->id " << C->id << endl;
+    while(A->id == C->id){
+        if(kd_res_next(set)){
+            C = kd_res_item_data(set);
+        }else{cerr << "well crapo. kdtree.c ~line 300" << endl;}
+    }
+    kd_res_free(set);
+    return C;
+}
 
 
 
