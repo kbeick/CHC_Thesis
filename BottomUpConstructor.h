@@ -40,7 +40,9 @@ void LoadHeap(BVH_Node* input, int size, struct kdtree* tree, std::priority_queu
         BVH_Node *B = kd_find_best_match(tree, A);
 
         Pair newPair;
-        MakeNewPair(&newPair, A, B);
+        // if(A->id <= B->id)  { MakeNewPair(&newPair, A, B); }
+        // else                { MakeNewPair(&newPair, B, A); }
+        MakeNewPair(&newPair, A, B); 
         pq->push(newPair);
         // cerr << "pushed new pair" << endl;
         // *input[i] = 0;
@@ -50,7 +52,8 @@ void LoadHeap(BVH_Node* input, int size, struct kdtree* tree, std::priority_queu
 BVH_Node* MergeNodes(BVH_Node* A, BVH_Node* B)
 {
     BVH_Node *mergedNode = new BVH_Node();
-    mergedNode->id = -1;
+    // mergedNode->id = -1;
+    mergedNode->id = (-1)*min(A->id, B->id);
     mergedNode->parent = NULL;
     mergedNode->triangle_count = A->triangle_count + B->triangle_count;
     mergedNode->triangles = new Triangle[mergedNode->triangle_count];
@@ -77,7 +80,7 @@ void BuildBVH_bottomup(Triangle* triangles, BVH_Node **root, int count)
     BVH_Node* InputNodes = new BVH_Node[count];
     struct kdres *set;
     float dist;
-    int new_id = 0;
+    int new_id = 1;
 
     struct kdtree *first_tree, *kd;
     int first_tree_size = 0;
@@ -151,34 +154,43 @@ void BuildBVH_bottomup(Triangle* triangles, BVH_Node **root, int count)
         merging neighbor nodes to get nodes w/ 4 trianges instead of making neighboring child of the same parent. */
     while(first_tree_size > 1){ /* 1:1 triangles:nodes */
 
-        cerr << "first_tree_size = " << first_tree_size << endl;
+        // cerr << "first_tree_size = " << first_tree_size << endl;
 
         struct Pair pair = first_pq.top();
         first_pq.pop();
 
+        // cerr << "\nPOPPED " << pair.A->id << " and " << pair.B->id << endl;
+
         if(! kd_contains(first_tree, pair.A, &foundA)){
             //A was already clustered with somebody
+            // cerr << "A was already clustered with somebody" << endl;
         }else if(! kd_contains(first_tree, pair.B, &foundB)){
             //B is invalid, find new best match for A
+            // cerr << "B invalid, find new match" << endl;
             BVH_Node *C = kd_find_best_match(first_tree, pair.A);
             Pair newPair;
             MakeNewPair(&newPair, pair.A, C);
             first_pq.push(newPair);
         } else {
+            // cerr << "proceed as normal" << endl;
             foundA->deleted = true;
             foundB->deleted = true;
             first_tree_size -= 2;
 
             if(pair.A->triangle_count + pair.B->triangle_count <= LEAF_SIZE){
             /* Want to merge these nodes */
+                // cerr << "  merging" << endl;
                 BVH_Node *mergedNode = MergeNodes(pair.A, pair.B);
                 leafCount--; /* merged two into one */
 
                 if(mergedNode->triangle_count == LEAF_SIZE){
+                    // cerr << "    proper leaf, goes into second phase" << endl;
                 /* This is a proper leaf, add it to second phase datastructs */
+                    mergedNode->id = kd_size;
                     kd_insert3f(kd, mergedNode->bbox.center.x, mergedNode->bbox.center.y, mergedNode->bbox.center.z, mergedNode);
                     InputNodes[kd_size++] = *mergedNode;
                 }else{
+                    // cerr << "  stays in first phase" << endl;
                     kd_insert3f(first_tree, mergedNode->bbox.center.x, mergedNode->bbox.center.y, mergedNode->bbox.center.z, mergedNode);
                     first_tree_size++;
 
@@ -192,6 +204,7 @@ void BuildBVH_bottomup(Triangle* triangles, BVH_Node **root, int count)
 
             }else if(first_tree_size <= 0){
             /* If this pair is the last two nodes in the tree */
+                // cerr << "  this is last two nodes in tree" << endl;
                 kd_insert3f(kd, pair.A->triangles[0].c[0], pair.A->triangles[0].c[1], pair.A->triangles[0].c[2], pair.A);
                 InputNodes[kd_size++] = *pair.A;
                 kd_insert3f(kd, pair.B->triangles[0].c[0], pair.B->triangles[0].c[1], pair.B->triangles[0].c[2], pair.B);
@@ -199,6 +212,7 @@ void BuildBVH_bottomup(Triangle* triangles, BVH_Node **root, int count)
 
             /* We want to set the larger of the two nodes into the next pq, we're done with it in this phase */
             }else if(pair.A->triangle_count >= pair.B->triangle_count){
+                // cerr << "  A goes into next phase, B stays in first tree/pq" << endl;
                 /* A moves on, B goes into first tree/pq again */
                 kd_insert3f(kd, pair.A->triangles[0].c[0], pair.A->triangles[0].c[1], pair.A->triangles[0].c[2], pair.A);
                 InputNodes[kd_size++] = *pair.A;
@@ -213,6 +227,7 @@ void BuildBVH_bottomup(Triangle* triangles, BVH_Node **root, int count)
                     first_pq.push(newPair);
                 }
             }else{
+                // cerr << "  B goes into next phase, A stays in first tree/pq" << endl;
                 /* B moves on, A goes into first tree/pq again */
                 kd_insert3f(kd, pair.B->triangles[0].c[0], pair.B->triangles[0].c[1], pair.B->triangles[0].c[2], pair.B);
                 InputNodes[kd_size++] = *pair.B;
@@ -237,7 +252,7 @@ void BuildBVH_bottomup(Triangle* triangles, BVH_Node **root, int count)
         InputNodes[kd_size++] = *loner;
     }
 
-    cerr << "Starting Phase 2" << endl;
+    cerr << "\n\nStarting Phase 2: kd size is " << kd_size << endl;
 
 
     std::priority_queue<Pair, vector<Pair>, ComparePair> pq;

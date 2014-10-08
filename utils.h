@@ -199,7 +199,9 @@ double* quadraticSolver(double a, double b, double c)
     return result;
 }
 
-
+/*
+ * returns true if 'array' of length 'count' has any duplicate values (the first index of which is put in "guilty index")
+*/
 bool HasDuplicates(std::vector<float> array, int count, int *guilty_index)
 {
     for (int i = 0; i < count; i++) {

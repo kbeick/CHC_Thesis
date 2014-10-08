@@ -290,7 +290,7 @@ int main(int argc, char** argv)
             // ----CALCULATE THE RAY FROM CAMERA TO PIXEL-----
             Vec3f rayVector = look->unitDir + x_comp + y_comp;
             Ray* curRay = new Ray(*c->position, rayVector);
-            cerr << "\n\npixel " << w << "," << h << " :: ";
+            // cerr << "\n\npixel " << w << "," << h << " :: ";
             // cerr << "curRay: " << *curRay << endl;
 
             // ----TRAVERSE THE BVH

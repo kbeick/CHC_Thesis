@@ -290,12 +290,13 @@ BVH_Node* kd_find_best_match(struct kdtree *tree, BVH_Node *A)
     struct kdres *set;
     set = kd_nearest_range3f(tree, A->bbox.center.x, A->bbox.center.y, A->bbox.center.z, 10.0);
     BVH_Node *C = kd_res_item_data(set);
-    // cerr << "pair.A->id " << pair.A->id << ", C->id " << C->id << endl;
+    // cerr << "     A->id " << A->id << ", C->id " << C->id << endl;
     while(A->id == C->id){
         if(kd_res_next(set)){
             C = kd_res_item_data(set);
         }else{cerr << "well crapo. kdtree.c ~line 300" << endl;}
     }
+    // cerr << "     A->id=" << A->id << " will be paired with C->id=" << C->id << endl;
     kd_res_free(set);
     return C;
 }
