@@ -140,6 +140,7 @@ int main(int argc, char** argv)
 
     // HANDLE AND SET PARAMETERS
     if (argc != 9 && argc != 10){ cerr << USAGE_MSG; exit(0);}
+    cerr << "PROCESSING " << argv[1] << endl;
     try{
         objReader = new ObjReader(argv[1]);
         branching_factor = atoi( argv[2] );
@@ -236,7 +237,7 @@ int main(int argc, char** argv)
 
     data_log << "BUILD TIME  " << stopwatch->read() << endl;
 
-    cerr << "\nFINISHED BUILDING TREE" << endl;
+    cerr << "\nFINISHED BUILDING TREE " << (construction_method == TOPDOWN ? "top down" : "bottom up" ) << endl;
     // printBVH(root);
     
     int flat_array_len;

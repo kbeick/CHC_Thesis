@@ -5,8 +5,8 @@ ___________________________________
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 File: ./models/cup/cup.obj  Branching Factor: 2  Constr Method: td  Campos: -2, 5, 15  Num Reflections: 1  Opacity: 0.5
 NUMBER OF TRIANGLES: 252
-BUILD TIME  0.0862699
-AVG TRAVERSAL TIME PER PIXEL:  8.22786e-06
+BUILD TIME  0.063118
+AVG TRAVERSAL TIME PER PIXEL:  8.15051e-06
 AVG # NODES VISTED PER PIXEL:  4.45891
 ...................................
 ...................................
@@ -14,8 +14,8 @@ ___________________________________
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 File: ./models/cup/cup.obj  Branching Factor: 2  Constr Method: bu  Campos: -2, 5, 15  Num Reflections: 1  Opacity: 0.5
 NUMBER OF TRIANGLES: 252
-BUILD TIME  0.114006
-AVG TRAVERSAL TIME PER PIXEL:  8.42492e-06
+BUILD TIME  0.070349
+AVG TRAVERSAL TIME PER PIXEL:  8.08654e-06
 AVG # NODES VISTED PER PIXEL:  4.5114
 ...................................
 ...................................
