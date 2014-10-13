@@ -120,9 +120,6 @@ Vec3f::operator*=(double a)
 // }
 
 
-// Vec3f getVec3(std::ifstream &ifs) { float x, y, z; ifs >> x >> y >> z; return Vec3f(x, y, z); }
-
-
 double ceil441(double f)
 {
     return ceil(f-0.00001);
@@ -199,7 +196,7 @@ double* quadraticSolver(double a, double b, double c)
     return result;
 }
 
-
+/* Returns true if 'val' appears more than once in 'array'. dups[] is an array whose elements rep the "guilty" indices of array */
 bool IsDuplicated(std::vector<float> array, int count, float val, int dups[])
 {
     int c=0;
@@ -207,7 +204,7 @@ bool IsDuplicated(std::vector<float> array, int count, float val, int dups[])
     for (int i = 0; i < count; i++) {
         if(array[i] == val){
             dups[c++] = i;
-            result = true;
+            if(c>1){ result = true; }
         }
     }
     return result;

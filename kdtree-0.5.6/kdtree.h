@@ -27,7 +27,7 @@ OF SUCH DAMAGE.
 #ifndef _KDTREE_H_
 #define _KDTREE_H_
 
-#include "../BVH_kevin.h"
+#include "../BVH.h"
 
 #ifdef __cplusplus
 extern "C" {

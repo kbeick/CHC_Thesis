@@ -1,7 +1,7 @@
 #include <cmath>
 #include <algorithm>
 
-#include "BVH_kevin.h"
+#include "BVH.h"
 #include "Ray.h"
 #include "Camera.h"
 #include "Triangle.h"
@@ -196,11 +196,9 @@ traverseFlatArray(float* flat_array, int idx, Ray* ray, Vec3f* color, int traceD
             }
         }
         // cerr << "closest triangle: id " << closest[0] << endl;
-        // Calc color specs for closest intersected Triangle
 
+        // Calc color specs for closest intersected Triangle
         if(closest[0] >= 0){
-            // Ray* viewDir = RayFromPoints(*c->position, *c->focus);
-            // viewDir->normalize();
             getColor(color, closest, ray, traceDepthToGo);
             return true;
 
@@ -240,8 +238,6 @@ traverseFlatArray(float* flat_array, int idx, Ray* ray, Vec3f* color, int traceD
             if ( bb ){
                 // cerr << "intersection! " << tnear << endl;
                 num_hits++;
-
-                // Get th
                 mins[i] = tnear;
                 maxs[i] = tfar;
                 // cerr << "~~intsection, mins["<<i<<"] got " << mins[i] << ", maxs["<<i<<"] got " << maxs[i] << endl;
@@ -253,7 +249,6 @@ traverseFlatArray(float* flat_array, int idx, Ray* ray, Vec3f* color, int traceD
         if(num_hits == 0){ return false; } /* No BBox intersection */
 
         // Traverse closest intersected Bounding Box
-        // bool still_searching = true;
         while(1){
             // cerr << "another iteration of while" << endl;
             int least_box = -1;
@@ -284,21 +279,6 @@ traverseFlatArray(float* flat_array, int idx, Ray* ray, Vec3f* color, int traceD
                         }
                     }
                 }
-                // if(HasDuplicates(mins, branching_factor, &guilty_index)==true){
-                //     // cerr << "HasDuplicates, guilty_index = " << guilty_index << endl;
-                
-                //     if ( least_box==guilty_index ){ /* since new least box requires strictly '<' and guilty_index is the first of the guilt indices, this works */
-                //         /* ie if there's a tie for closest box (by front face) */
-                //         // cerr << "dup for closest box. " << endl;
-                //         /* Go thru maxs to find which has closer back */
-                //         for(int i=0; i<branching_factor; i++){
-                //             if( maxs[i] != 0 && maxs[i] < maxs[least_box] ){
-                //                 least_box=i;
-                //                 // cerr << "New least box " << least_box << endl;
-                //             }
-                //         }
-                //     }
-                // }
             }
 
             // cerr << "least_box = " << least_box << endl;

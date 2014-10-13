@@ -27,12 +27,15 @@
 
 #include <numeric>
 #include <cmath>
-// #include <limits>
 #include <vector>
-// #include <list>
-// #include <algorithm>
 #include <string>
-#include "BVH_kevin.h"
+
+#include "globals.h"
+
+#include "BVH.h"
+#include "BVH_BottomUpConstructor.h"
+#include "BVH_TopDownConstructor.h"
+
 #include "BBox.h"
 #include "Ray.h"
 #include "Shading.h"
@@ -41,27 +44,14 @@
 #include "objLoader.h"
 #include "Stopwatch.h"
 #include "Camera.h"
-#include "globals.h"
-
-
-
-
-#include "BottomUpConstructor.h"
-    
 
 using std::cerr;
 using std::cout;
 using std::endl;
 
-// Declare our collection of Triangles
-// std::vector<Triangle> Triangles(numShapes);
-
 /* COMMAND LINE-DEFINED PARAMETERS FOR BVH */
 ObjReader* objReader;               // Object Reader for file
 Vec3f campos;                       // Camera Position
-// double reflec = 0.0;             // Global Reflectivity
-int numReflections = 0;             // Depth of Ray Tracing, number of reflections accounted for
-
 
 /* HELPERS */
 
@@ -231,7 +221,7 @@ int main(int argc, char** argv)
     //     }
     // }
 
-    // BUILD BVH
+    // INITIALIZE BVH
     BVH_Node *root = new BVH_Node();
     root->id = 0;
     root->parent = NULL;
@@ -242,7 +232,7 @@ int main(int argc, char** argv)
     // Call Specified BVH Constructor
     if (construction_method == TOPDOWN){         BuildBVH_topdown(tris, root, root->parent, numTriangles, 0); }
     // else if (construction_method == BOTTOMUP){   BuildBVH_bottomup(tris, &root, numTriangles); }
-    else if (construction_method == BOTTOMUP){   BuildBVH_bottomup_BETTER(tris, &root, numTriangles); }
+    else if (construction_method == BOTTOMUP){   BuildBVH_bottomup(tris, &root, numTriangles); }
 
     data_log << "BUILD TIME  " << stopwatch->read() << endl;
 
@@ -252,7 +242,7 @@ int main(int argc, char** argv)
     int flat_array_len;
     flat_array = bvhToFlatArray(root, &flat_array_len, branching_factor);
 
-    cerr << "flat_array_len " << flat_array_len << endl;
+    // cerr << "flat_array_len " << flat_array_len << endl;
 
     // for(int a=0; a<flat_array_len; a++){
     //     if(flat_array[a]==LEAF_FLAG){
@@ -295,7 +285,7 @@ int main(int argc, char** argv)
             // ----CALCULATE THE RAY FROM CAMERA TO PIXEL-----
             Vec3f rayVector = look->unitDir + x_comp + y_comp;
             Ray* curRay = new Ray(*c->position, rayVector);
-            cerr << "\n\npixel " << w << "," << h << " :: ";
+            // cerr << "\n\npixel " << w << "," << h << " :: ";
             // cerr << "curRay: " << *curRay << endl;
 
             // ----TRAVERSE THE BVH

@@ -27,13 +27,6 @@ struct BBox {
 	 	center = (max+min)*.5;
 	}
 
-
-	// Vec3f* getCenterOfBox()
-	// {
-	// 	Vec3f sum = max+min;
-	// 	return new Vec3f(sum.x/2, sum.y/2, sum.z/2);
-	// }
-
 	void expandToInclude(const Vec3f& p)
 	{
 		min.x = min.x > p.x ? p.x : min.x;
@@ -61,8 +54,6 @@ struct BBox {
 		center.y=0;
 		center.z=0;
 		count=0;
-
-
 	}
 
 	void expandToInclude(const BBox& b)
@@ -158,7 +149,7 @@ struct BBox {
 	    tmax = tzmax;
 
 
-		// find the distances from ray source to the front and back faces of BBox
+	  // find the distances from ray source to the front and back faces of BBox
 	  // txmin = (parameters[  sign[0]].x - rayOrigin.x);
 	  // txmax = (parameters[1-sign[0]].x - rayOrigin.x);
 	  // tymin = (parameters[  sign[1]].y - rayOrigin.y);

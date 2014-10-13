@@ -5,7 +5,7 @@
 
 ./CHC_Thesis.app/Contents/MacOS/CHC_Thesis ./models/cup/cup.obj        2   td  -2 5  15        1   0.5  cup_TD
 
-#./CHC_Thesis.app/Contents/MacOS/CHC_Thesis ./models/cup/cup.obj        2   bu  -2 5  15        1   0.5  cup_BU
+./CHC_Thesis.app/Contents/MacOS/CHC_Thesis ./models/cup/cup.obj        2   bu  -2 5  15        1   0.5  cup_BU
 
 
 #./CHC_Thesis.app/Contents/MacOS/CHC_Thesis ./models/cup2/cup2.obj      2   td  -4 9  13.6      1   0.5  cup2_TD

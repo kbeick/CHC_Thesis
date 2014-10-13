@@ -1,18 +1,5 @@
 #include "./kdtree-0.5.6/kdtree.c"
 
-struct Pair {
-    float distance;
-    BVH_Node* A;
-    BVH_Node* B;
-};
-
-class ComparePair {
-public:
-    bool operator()(struct Pair& p1, struct Pair& p2) // Returns true if p1.distance > p2.distance
-    {
-        return (p1.distance > p2.distance);
-    }
-};
 
 BVH_Node* SetUpNodeFor_BottomUp(Triangle* triangles)
 {
@@ -27,30 +14,7 @@ BVH_Node* SetUpNodeFor_BottomUp(Triangle* triangles)
     return node;
 }
 
-void MakeNewPair(struct Pair *pair, BVH_Node *A, BVH_Node *B)
-{
-    //get distance between A,B
-    float dist = sqrt(SQ(A->bbox.center.x - B->bbox.center.x) + SQ(A->bbox.center.y - B->bbox.center.y) + SQ(A->bbox.center.z - B->bbox.center.z));
-    Pair newPair = {dist, A, B};
-    *pair = newPair;
-}
-
-void LoadHeap(BVH_Node* input, int size, struct kdtree* tree, std::priority_queue<Pair, vector<Pair>, ComparePair>* pq)
-{
-    for(int i=0; i<size; i++){
-        BVH_Node *A = &input[i];
-        BVH_Node *B = kd_find_best_match(tree, A);
-
-        Pair newPair;
-        // if(A->id <= B->id)  { MakeNewPair(&newPair, A, B); }
-        // else                { MakeNewPair(&newPair, B, A); }
-        MakeNewPair(&newPair, A, B); 
-        pq->push(newPair);
-        // cerr << "pushed new pair" << endl;
-        // *input[i] = 0;
-    }
-}
-
+/* Makes the given BVH_Nodes (A,B) children of a new BVH_Nodes. return it */
 BVH_Node* ProduceParentNode(BVH_Node *A, BVH_Node *B, int *newID)
 {
     BVH_Node *C = new BVH_Node();
@@ -90,6 +54,7 @@ BVH_Node* ProduceParentNode(BVH_Node *A, BVH_Node *B, int *newID)
     return C;
 }
 
+/* Combines the properties + attributes of two BVH_Nodes into one */
 BVH_Node* MergeNodes(BVH_Node* A, BVH_Node* B)
 {
     BVH_Node *mergedNode = new BVH_Node();
@@ -111,9 +76,10 @@ BVH_Node* MergeNodes(BVH_Node* A, BVH_Node* B)
 }
 
 
-void BuildBVH_bottomup_BETTER(Triangle* triangles, BVH_Node **root, int count)
+void BuildBVH_bottomup(Triangle* triangles, BVH_Node **root, int count)
 {
-    /* PSEUDO CODE */
+    /* PSEUDO CODE - locally-ordered agglomerative cluserting */
+    /* (http://iss.ices.utexas.edu/Publications/Papers/RT2008.pdf) */
     // KDTree kd = new KDTree(InputPoints);
     // Cluster A = kd.getAnyElement();
     // Cluster B = kd.findBestMatch(A);
@@ -148,7 +114,6 @@ void BuildBVH_bottomup_BETTER(Triangle* triangles, BVH_Node **root, int count)
     for(int t=0; t < numTriangles; t++){
         /* Make a BVH_Node for each triangle */
         BVH_Node* node = SetUpNodeFor_BottomUp(&triangles[t]);
-        // node->id = i;
         kd_insert3f(kd, node->bbox.center.x, node->bbox.center.y, node->bbox.center.z, node);
         // cerr << "added node at " << node->triangles[0].c[0] << ", " << node->triangles[0].c[1] << ", " <<node->triangles[0].c[2] << endl;
 
@@ -165,7 +130,7 @@ void BuildBVH_bottomup_BETTER(Triangle* triangles, BVH_Node **root, int count)
 
     while(kd_size > 1){
         // cerr << "-------------------------------------\n------------------------------------- " << endl;
-        cerr << "\nkd size = " << kd_size << endl;
+        // cerr << "\nkd size = " << kd_size << endl;
 
         BVH_Node *C = kd_find_best_match_with_sq(kd, B, &dist_sq_BC);
 
@@ -232,10 +197,6 @@ void BuildBVH_bottomup_BETTER(Triangle* triangles, BVH_Node **root, int count)
 
     }
 
-    /* Only non-deleted BVH_Node in kd_tree is the root now */
-    // set = kd_nearest3f(kd, 0, 0, 0);
-    // *root = kd_res_item_data(set);
-
     // cerr << "ROOT: \n" << **root << endl;
 
     /* CLEAN UP */
@@ -245,12 +206,51 @@ void BuildBVH_bottomup_BETTER(Triangle* triangles, BVH_Node **root, int count)
 }
 
 
-/*
-    nodes need an id (inner_node_counter ?)
-    flatArrayCount ??
-    node parent pointer
-*/
-void BuildBVH_bottomup(Triangle* triangles, BVH_Node **root, int count)
+/* ----------------------------------------------------------------------------------------------------------- */
+/* ----------------------------------------------------------------------------------------------------------- */
+/* ----------------------------------------------------------------------------------------------------------- */
+/* First, hella slow Bottom Up constructor and its helpers */
+
+
+struct Pair {
+    float distance;
+    BVH_Node* A;
+    BVH_Node* B;
+};
+
+class ComparePair {
+public:
+    bool operator()(struct Pair& p1, struct Pair& p2) // Returns true if p1.distance > p2.distance
+    {
+        return (p1.distance > p2.distance);
+    }
+};
+
+void MakeNewPair(struct Pair *pair, BVH_Node *A, BVH_Node *B)
+{
+    //get distance between A,B
+    float dist = sqrt(SQ(A->bbox.center.x - B->bbox.center.x) + SQ(A->bbox.center.y - B->bbox.center.y) + SQ(A->bbox.center.z - B->bbox.center.z));
+    Pair newPair = {dist, A, B};
+    *pair = newPair;
+}
+
+void LoadHeap(BVH_Node* input, int size, struct kdtree* tree, std::priority_queue<Pair, vector<Pair>, ComparePair>* pq)
+{
+    for(int i=0; i<size; i++){
+        BVH_Node *A = &input[i];
+        BVH_Node *B = kd_find_best_match(tree, A);
+
+        Pair newPair;
+        // if(A->id <= B->id)  { MakeNewPair(&newPair, A, B); }
+        // else                { MakeNewPair(&newPair, B, A); }
+        MakeNewPair(&newPair, A, B); 
+        pq->push(newPair);
+        // cerr << "pushed new pair" << endl;
+        // *input[i] = 0;
+    }
+}
+
+void BuildBVH_bottomup_OLD_BAD(Triangle* triangles, BVH_Node **root, int count)
 {
     BVH_Node* InputNodes = new BVH_Node[count];
     struct kdres *set;
@@ -264,7 +264,8 @@ void BuildBVH_bottomup(Triangle* triangles, BVH_Node **root, int count)
     struct kdnode *foundA = (kdnode *)malloc(sizeof *foundA);
     struct kdnode *foundB = (kdnode *)malloc(sizeof *foundB);
 
-    /* PSEUDO CODE */
+    /* PSEUDO CODE - heap-based agglomerative clustering */
+    /* (http://iss.ices.utexas.edu/Publications/Papers/RT2008.pdf) */
     // KDTree kd = new KDTree(InputPoints);
     // MinHeap heap = new MinHeap();
     // foreach A in InputPoints do {
@@ -520,3 +521,5 @@ void BuildBVH_bottomup(Triangle* triangles, BVH_Node **root, int count)
     // Get rid of InputNodes   TODO
 
 }
+/* ----------------------------------------------------------------------------------------------------------- */
+/* ----------------------------------------------------------------------------------------------------------- */
