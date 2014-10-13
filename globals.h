@@ -41,7 +41,7 @@ int IMAGE_WIDTH =  300;
 int IMAGE_HEIGHT = 300;
 double GLOBAL_REFLECT_COEF = 0.2;        /* Global Reflectivity */
 
-int branching_factor = 0;           // Children per Node
+static int branching_factor = 0;           // Children per Node
 int construction_method = 0;        // TOPDOWN==1 ; BOTTOMUP==2
 double opacity = 0.0;               // Global Opacity
 

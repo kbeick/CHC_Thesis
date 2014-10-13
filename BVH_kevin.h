@@ -163,9 +163,6 @@ int CalculateBestAxis(Triangle* triangles, int count, BBox total, int &splitPoin
 void BuildBVH_topdown(Triangle* triangles, BVH_Node *current, BVH_Node *parent,
 							int count, int depth)
 {
-	// branching_factor = _branching_factor;
-	// Set initial (dummy) values
-	// level++;
 	// cerr << "\ndepth " << depth << endl;
 
 	current->parent = parent;
@@ -236,47 +233,6 @@ void BuildBVH_topdown(Triangle* triangles, BVH_Node *current, BVH_Node *parent,
 	BuildBVH_topdown((triangles+splitPoint), next, current, rightCount, depth+1);
 	return;
 }
-
-void BuildBVH_bottomup(Triangle* triangles, BVH_Node *current, BVH_Node *parent,
-							int count, int depth)
-{
-	// branching_factor = _branching_factor;
-
-	/* PSEUDO CODE */
-	// KDTree kd = new KDTree(InputPoints);
-	// MinHeap heap = new MinHeap();
-	// foreach A in InputPoints do {
-	// 	Cluster B = kd.findBestMatch(A);
-	// 	heap.add(d(A,B), new Pair(A,B));
-	// }
-	// while( kd.size() > 1 ) {
-	// 	Pair <A,B> = heap.removeMinPair();
-	// 	if (! kd.contains(A) ) {
-	// 		//A was already clustered with somebody
- //        } else if (! kd.contains(B) ) {
-	// 		//B is invalid, find new best match for A
-	// 		B = kd.findBestMatch(A);
-	// 		heap.add(d(A,B), new Pair(A,B));
-	// 	} else {
-	// 		kd.remove(A);
-	// 		kd.remove(B);
-	// 		Cluster C = new Cluster(A,B);
-	// 		kd.add(C);
-	// 		Cluster D = kd.findBestMatch(C);
-	// 		heap.add(d(C,D), new Pair(C,D));
-	// 	}
-	// }
-
-}
-
-// void collapseBVH(BVH_Node *current, int current_branching_factor, int new_branching_factor)
-// {
-// 	assert(2*current_branching_factor == new_branching_factor);
-
-// 	for(int i=0; i<current_branching_factor; i++){
-// 		current->children[i]->children[0];
-// 	}
-// }
 
 
 float* bvhToFlatArray(BVH_Node *root, int *size, int branching_factor){
