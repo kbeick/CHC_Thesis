@@ -54,14 +54,19 @@ ostream& operator<<(ostream& out, const BVH_Node& x )
 }
 
 
-void printBVH(BVH_Node* node)
+void printBVH(BVH_Node* node, int level)
 {
 	if(node == NULL){return;}
 
-	cout << endl << *node;
+	cout << "level ";
+	for(int l=0; l<level; l++){ cout << "*"; }
+	cout << endl << *node << endl;
+
+	level++;
+
 	for (int i = 0; i < MAX_BRANCHING_FACTOR; ++i)
 	{
-		printBVH(node->children[i]);
+		printBVH(node->children[i], level);
 	}
 }
 
