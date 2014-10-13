@@ -172,25 +172,25 @@ traverseFlatArray(float* flat_array, int idx, Ray* ray, Vec3f* color, int traceD
     // LEAF NODE
     if (flat_array[idx] == LEAF_FLAG){
         // cerr << "LEAF NODE\n" << endl;
-        idx++; //increment here, after comparison in case of a FALSE
+        idx++; //increment here, after 'if' statement comparison in case of a FALSE
         float closest[2] = {-1,std::numeric_limits<float>::infinity()};//[Tri ID, data]
         int triangle_count = flat_array[idx++];
         // Intersect Triangles
         for(int i=0; i<triangle_count; i++){
-            int cur_tri_id = idx+i;
-            // cerr << "looking at triangle, id = " << flat_array[cur_tri_id] << endl;
+            int cur_idx = idx+i;
+            // cerr << "looking at triangle, id = " << flat_array[cur_idx] << endl;
             float data = std::numeric_limits<float>::infinity();
 
             /* Get Triangle with the appropriate id */
             Triangle curTri;
-            GetTriangleFromID(tris, numTriangles, flat_array[cur_tri_id], &curTri);
+            GetTriangleFromID(tris, numTriangles, flat_array[cur_idx], &curTri);
 
             bool hit = curTri.intersect(*ray, &data);
             // cerr << "data is " << data << endl;
             if(hit){
                 if(data < closest[1]){
                     // cerr << "it's less, replace closest" << endl;
-                    closest[0] = flat_array[cur_tri_id];
+                    closest[0] = flat_array[cur_idx];
                     closest[1] = data;
                 }
             }
@@ -209,7 +209,7 @@ traverseFlatArray(float* flat_array, int idx, Ray* ray, Vec3f* color, int traceD
     // INNER NODE
     else{
         // cerr << "INNER NODE" << endl;
-        int num_hits;
+        int num_hits = 0;
 
         std::vector<float> mins (branching_factor, 0);// idx == which BBox, val == tnear of BBox (if intersect else 0)
         std::vector<float> maxs (branching_factor, 0);// idx == which BBox, val == tfar of BBox (if intersect else 0)
@@ -257,6 +257,7 @@ traverseFlatArray(float* flat_array, int idx, Ray* ray, Vec3f* color, int traceD
         while(1){
             // cerr << "another iteration of while" << endl;
             int least_box = -1;
+
             for(int i=0; i<branching_factor; i++){
                 if( mins[i] != 0){
                     if(least_box == -1 || mins[i] < mins[least_box] ){
@@ -265,25 +266,42 @@ traverseFlatArray(float* flat_array, int idx, Ray* ray, Vec3f* color, int traceD
                     }
                 }
             }
+
             if( least_box == -1){ return false; } /* No BBox intersection, I think this is redundant */
 
             if(num_hits > 1){
+                // cerr << "mult hits" << endl;
+                int dups[MAX_BRANCHING_FACTOR] = {-1};
                 int guilty_index = -1;
-                if(HasDuplicates(mins, branching_factor, &guilty_index)==true){
-                    // cerr << "HasDuplicates, guilty_index = " << guilty_index << endl;
-                
-                    if ( least_box==guilty_index ){ /* since new least box requires strictly '<' and guilty_index is the first of the guilt indices */
-                        // cerr << "dup for closest box. " << endl;
-                        /* Go thru maxs to find which has closer back */
-                        for(int i=0; i<branching_factor; i++){
-                            if( maxs[i] != 0 && maxs[i] < maxs[least_box] ){
-                                least_box=i;
-                                // cerr << "New least box " << least_box << endl;
+
+                if( IsDuplicated(mins, branching_factor, mins[least_box], dups)==true){
+                    for(int d=0; d<branching_factor; d++){
+                        if(dups[d] < 0){ continue; }
+                        if(dups[d] != least_box){
+                            if (maxs[dups[d]] > 0   &&   maxs[dups[d]] < maxs[least_box] ){
+                                least_box=dups[d];
                             }
                         }
                     }
                 }
+                // if(HasDuplicates(mins, branching_factor, &guilty_index)==true){
+                //     // cerr << "HasDuplicates, guilty_index = " << guilty_index << endl;
+                
+                //     if ( least_box==guilty_index ){ /* since new least box requires strictly '<' and guilty_index is the first of the guilt indices, this works */
+                //         /* ie if there's a tie for closest box (by front face) */
+                //         // cerr << "dup for closest box. " << endl;
+                //         /* Go thru maxs to find which has closer back */
+                //         for(int i=0; i<branching_factor; i++){
+                //             if( maxs[i] != 0 && maxs[i] < maxs[least_box] ){
+                //                 least_box=i;
+                //                 // cerr << "New least box " << least_box << endl;
+                //             }
+                //         }
+                //     }
+                // }
             }
+
+            // cerr << "least_box = " << least_box << endl;
 
             int idx_next_box = idx+least_box;
 
@@ -298,6 +316,7 @@ traverseFlatArray(float* flat_array, int idx, Ray* ray, Vec3f* color, int traceD
                 // cerr << "in the else..."<<endl;
                 mins[least_box] = 0;
                 num_hits--;
+                // cerr << "num_hits is now " << num_hits << endl;
             }
         }
         cerr << "shouldn't have gotten here...." << endl;

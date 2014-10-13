@@ -298,7 +298,7 @@ float* bvhToFlatArray(BVH_Node *root, int *size, int branching_factor){
 
 	*size = elements_per_inner_node*inner_node_counter + elements_per_leaf_node*leafCount;
 
-	cerr << "size IS " << *size << endl;
+	// cerr << "size IS " << *size << endl;
 
 	float *flat_array= new float[*size];
 	int non_leaf_count=0;
@@ -311,7 +311,7 @@ float* bvhToFlatArray(BVH_Node *root, int *size, int branching_factor){
 		bool isLeaf=true;
 		current=tree.top();
 		tree.pop();
-		cerr<<"\nBegin Node: "<< current->id <<" <- " << currentIndex << ".  " << current <<endl;
+		// cerr<<"\nBegin Node: "<< current->id <<" <- " << currentIndex << ".  " << current <<endl;
 		current->id=currentIndex;
 
 		// if(current->parent==NULL) cerr<<"Must be root because I have no parent"<<endl;
@@ -327,7 +327,7 @@ float* bvhToFlatArray(BVH_Node *root, int *size, int branching_factor){
 	
 		// cerr<<"I have this many triangles : "<<current->triangle_count<<endl;	
 		if(!isLeaf){
-			cerr << "NOT LEAF" << endl;
+			// cerr << "NOT LEAF" << endl;
 			currentIndex--; //Cuz 1st time thru it's already where it should be, so this proactively counteracts first increment
 			//#pragma unroll
 			for(int i=0; i<branching_factor; i++){
@@ -350,7 +350,7 @@ float* bvhToFlatArray(BVH_Node *root, int *size, int branching_factor){
 
 		}
 		else if(isLeaf){
-			cerr << "LEAF" << endl;
+			// cerr << "LEAF" << endl;
 			flat_array[currentIndex] = LEAF_FLAG;
 			// cerr<<"Beginning Leaf index "<<currentIndex<<endl;
 			flat_array[++currentIndex] = current->triangle_count;
@@ -393,7 +393,7 @@ float* bvhToFlatArray(BVH_Node *root, int *size, int branching_factor){
 		++currentIndex;
 		for(int i=0; i<branching_factor; i++){
 			if (current->children[i]!=NULL) { 
-				cerr << "PUSHING " << *current->children[i] << endl;
+				// cerr << "PUSHING " << *current->children[i] << endl;
 				tree.push(current->children[i]);
 			}
 		}

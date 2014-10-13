@@ -149,7 +149,7 @@ int main(int argc, char** argv)
     c = SetUpCamera();
 
     // HANDLE AND SET PARAMETERS
-    if (argc != 9){ cerr << USAGE_MSG; exit(0);}
+    if (argc != 9 && argc != 10){ cerr << USAGE_MSG; exit(0);}
     try{
         objReader = new ObjReader(argv[1]);
         branching_factor = atoi( argv[2] );
@@ -173,6 +173,10 @@ int main(int argc, char** argv)
         "  Num Reflections: " << numReflections <<
         "  Opacity: " << opacity <<
         endl;
+
+    char *outFileName;
+    if(argv[9]){ outFileName = argv[9]; }
+    else{ outFileName = "myOutput"; }
 
     // print_params();
 
@@ -237,7 +241,8 @@ int main(int argc, char** argv)
 
     // Call Specified BVH Constructor
     if (construction_method == TOPDOWN){         BuildBVH_topdown(tris, root, root->parent, numTriangles, 0); }
-    else if (construction_method == BOTTOMUP){   BuildBVH_bottomup(tris, &root, numTriangles); }
+    // else if (construction_method == BOTTOMUP){   BuildBVH_bottomup(tris, &root, numTriangles); }
+    else if (construction_method == BOTTOMUP){   BuildBVH_bottomup_BETTER(tris, &root, numTriangles); }
 
     data_log << "BUILD TIME  " << stopwatch->read() << endl;
 
@@ -290,7 +295,7 @@ int main(int argc, char** argv)
             // ----CALCULATE THE RAY FROM CAMERA TO PIXEL-----
             Vec3f rayVector = look->unitDir + x_comp + y_comp;
             Ray* curRay = new Ray(*c->position, rayVector);
-            // cerr << "\n\npixel " << w << "," << h << " :: ";
+            cerr << "\n\npixel " << w << "," << h << " :: ";
             // cerr << "curRay: " << *curRay << endl;
 
             // ----TRAVERSE THE BVH
@@ -321,6 +326,6 @@ int main(int argc, char** argv)
     double avg_num_visits = std::accumulate(node_visit_data.begin(),node_visit_data.end(),0.0) / npixels;
     data_log << "AVG # NODES VISTED PER PIXEL:  " << avg_num_visits << endl;
 
-    if( PRODUCE_IMAGE ) WriteImage(image, "myOutput") ;
+    if( PRODUCE_IMAGE ) WriteImage(image, outFileName) ;
     data_log.close();
 }

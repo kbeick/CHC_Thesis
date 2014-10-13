@@ -68,6 +68,7 @@ bool kd_contains(struct kdtree *tree, BVH_Node *data, struct kdnode **found);
 bool kd_contains_helper(struct kdnode *node, BVH_Node *data, struct kdnode **found);
 
 BVH_Node* kd_find_best_match(struct kdtree *tree, BVH_Node *A);
+BVH_Node* kd_find_best_match_with_sq(struct kdtree *tree, BVH_Node *A, double *dist_sq);
 
 
 /* Find the nearest node from a given point.
@@ -128,12 +129,14 @@ int kd_res_next(struct kdres *set);
  * and optionally sets its position to the pointers(s) if not null.
  */
 BVH_Node *kd_res_item(struct kdres *set, double *pos);
+BVH_Node *kd_res_item_with_sq(struct kdres *set, double *pos, double *dist_sq);
 BVH_Node *kd_res_itemf(struct kdres *set, float *pos);
 BVH_Node *kd_res_item3(struct kdres *set, double *x, double *y, double *z);
 BVH_Node *kd_res_item3f(struct kdres *set, float *x, float *y, float *z);
 
 /* equivalent to kd_res_item(set, 0) */
 BVH_Node *kd_res_item_data(struct kdres *set);
+BVH_Node *kd_res_item_data_with_sq(struct kdres *set, double *dist_sq);
 
 
 #ifdef __cplusplus

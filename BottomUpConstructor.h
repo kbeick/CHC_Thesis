@@ -22,6 +22,8 @@ BVH_Node* SetUpNodeFor_BottomUp(Triangle* triangles)
     node->triangles = triangles;
     node->bbox = triangles[0].bbox;
 
+    // cerr << "box is\n" << node->bbox << endl;
+
     return node;
 }
 
@@ -49,6 +51,45 @@ void LoadHeap(BVH_Node* input, int size, struct kdtree* tree, std::priority_queu
     }
 }
 
+BVH_Node* ProduceParentNode(BVH_Node *A, BVH_Node *B, int *newID)
+{
+    BVH_Node *C = new BVH_Node();
+
+    C->id = (newID != NULL ? *newID : 0);
+    C->children[0] = A;
+    C->children[1] = B;
+    C->parent = NULL;
+    C->triangle_count = A->triangle_count + B->triangle_count;
+    C->triangles = new Triangle[C->triangle_count];
+    for(int t=0; t<A->triangle_count; t++){
+        C->triangles[t] = A->triangles[t];
+    }
+    for(int t=0; t<B->triangle_count; t++){
+        C->triangles[A->triangle_count+t] = B->triangles[t];
+    }
+
+    C->bbox = A->bbox;
+    C->bbox.expandToInclude(B->bbox);
+    A->parent = C;
+    B->parent = C;
+
+    /* GIVE FINAL IDs */
+    if(A->children[0]==NULL && A->children[1]==NULL ){
+        // LEAF
+        A->id = -1;
+    }else{
+        A->id = inner_node_counter++;
+    }
+    if(B->children[0]==NULL && B->children[1]==NULL ){
+        // LEAF
+        B->id = -1;
+    }else{
+        B->id = inner_node_counter++;
+    }
+
+    return C;
+}
+
 BVH_Node* MergeNodes(BVH_Node* A, BVH_Node* B)
 {
     BVH_Node *mergedNode = new BVH_Node();
@@ -67,6 +108,140 @@ BVH_Node* MergeNodes(BVH_Node* A, BVH_Node* B)
     mergedNode->bbox.expandToInclude(B->bbox);
 
     return mergedNode;
+}
+
+
+void BuildBVH_bottomup_BETTER(Triangle* triangles, BVH_Node **root, int count)
+{
+    /* PSEUDO CODE */
+    // KDTree kd = new KDTree(InputPoints);
+    // Cluster A = kd.getAnyElement();
+    // Cluster B = kd.findBestMatch(A);
+    // while( kd.size() > 1 ) {
+    //  Cluster C = kd.findBestMatch(B);
+    //  if (A == C){
+    //      kd.remove(A);
+    //      kd.remove(B);
+    //      A = new Cluster(A,B);
+    //      kd.add(A);
+    //      Cluster B = kd.findBestMatch(A);
+    //  } else {
+    //      A = B;
+    //      B = C;
+    //  }
+    // }
+
+    BVH_Node* InputNodes = new BVH_Node[count];
+    struct kdres *set;
+    float dist;
+    double dist_sq_AB, dist_sq_BC;
+    int new_id = 1;
+
+    struct kdtree *kd;
+    int kd_size= 0;
+
+    struct kdnode *foundA = (kdnode *)malloc(sizeof *foundA);
+    struct kdnode *foundB = (kdnode *)malloc(sizeof *foundB);
+
+    kd = kd_create(3);
+
+    for(int t=0; t < numTriangles; t++){
+        /* Make a BVH_Node for each triangle */
+        BVH_Node* node = SetUpNodeFor_BottomUp(&triangles[t]);
+        // node->id = i;
+        kd_insert3f(kd, node->bbox.center.x, node->bbox.center.y, node->bbox.center.z, node);
+        // cerr << "added node at " << node->triangles[0].c[0] << ", " << node->triangles[0].c[1] << ", " <<node->triangles[0].c[2] << endl;
+
+        node->id = new_id++;
+        leafCount++;
+        kd_size++;
+        InputNodes[t] = *node;
+    }
+
+    /* GET ANY NODE */
+    set = kd_nearest3f(kd, 0, 0, 0);
+    BVH_Node *A =  kd_res_item_data(set);
+    BVH_Node *B = kd_find_best_match_with_sq(kd, A, &dist_sq_AB);
+
+    while(kd_size > 1){
+        // cerr << "-------------------------------------\n------------------------------------- " << endl;
+        cerr << "\nkd size = " << kd_size << endl;
+
+        BVH_Node *C = kd_find_best_match_with_sq(kd, B, &dist_sq_BC);
+
+        // cerr << "A: center " <<A->bbox.center << endl << A->bbox << endl;
+        // cerr << "B: center " <<B->bbox.center << endl << B->bbox << endl;
+        // cerr << "C: center " <<C->bbox.center << endl << C->bbox << endl;
+
+        // cerr << "dist_sq_AB: " << dist_sq_AB << ". dist_sq_BC: " << dist_sq_BC << endl;
+
+        if(A->id == C->id || dist_sq_AB <= dist_sq_BC){ //In the exceptional case that three clusters are exactly equally good matches (i.e. d(A,B) = d(B,C) = d(C,A)), the pseudocode
+            // could possibly run into an infinite loop, but this is easily fixed. One can change the condition to allow A and B to be clustered
+            // as long as C is no better of a match (i.e. d(A,B) ≤ d(B,C)).
+            kd_contains(kd, A, &foundA); // get the kd node for A
+            kd_contains(kd, B, &foundB); // get the kd node for B
+            foundA->deleted = true; // "delete" the kd node for A
+            foundB->deleted = true; // "delete" the kd node for B
+            kd_size -= 2;
+
+            // cerr << "A has " << A->triangle_count << " triangles. B has " << B->triangle_count << " triangles. " << endl;
+            // cerr << "A: ";
+            // for(int q=0; q<A->triangle_count; q++){
+            //     cerr << A->triangles[q].id << " ,";
+            // }
+            // cerr << "\nB: ";
+            // for(int q=0; q<B->triangle_count; q++){
+            //     cerr << B->triangles[q].id << " ,";
+            // }
+            // cerr << endl;
+
+            /* if these can combine to make a new leaf node, do it */
+            if(A->triangle_count + B->triangle_count <= LEAF_SIZE){
+                // cerr << "  merging" << endl;
+                A = MergeNodes(A, B);
+                leafCount--;
+            }else{ /* else make em children of a new parent node */
+                // cerr << "  make em children on new parent" << endl;
+                A = ProduceParentNode(A, B, &new_id);
+                new_id++;
+            }
+
+            kd_insert3f(kd, A->bbox.center.x, A->bbox.center.y, A->bbox.center.z, A);
+            kd_size++;
+            // cerr << "kd size is now " << kd_size << endl;
+
+            // cerr << "new A:\n" << *A << endl;
+
+            if(kd_size <= 1){ 
+                A->id = inner_node_counter++;
+                // cerr << "did this\n";
+
+                *root = A;
+                // cerr << "ROOT: \n" << **root << endl;
+
+                continue;
+            }
+
+            B = kd_find_best_match_with_sq(kd, A, &dist_sq_AB);
+
+        }else{
+            // cerr << "A != C" << endl;
+            A = B;
+            B = C;
+        }
+
+    }
+
+    /* Only non-deleted BVH_Node in kd_tree is the root now */
+    // set = kd_nearest3f(kd, 0, 0, 0);
+    // *root = kd_res_item_data(set);
+
+    // cerr << "ROOT: \n" << **root << endl;
+
+    /* CLEAN UP */
+    kd_res_free(set);
+    kd_free(kd);
+    // Get rid of InputNodes   TODO
 }
 
 
@@ -314,7 +489,6 @@ void BuildBVH_bottomup(Triangle* triangles, BVH_Node **root, int count)
             }else{
                 pair.B->id = inner_node_counter++;
             }
-
 
             kd_insert3f(kd, C->bbox.center.x, C->bbox.center.y, C->bbox.center.z, C);
             kd_size++;

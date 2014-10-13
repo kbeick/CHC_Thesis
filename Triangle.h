@@ -154,7 +154,10 @@ class Triangle{
 
 void GetTriangleFromID(Triangle *triangles, int numTriangles, int ID, Triangle *result){
 	for(int i=0; i<numTriangles; i++){
-		if(triangles[i].id == ID){ *result = triangles[i]; }
+		if(triangles[i].id == ID){ 
+			*result = triangles[i];
+			return;
+		}
 	}
 }
 

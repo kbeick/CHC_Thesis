@@ -287,13 +287,18 @@ bool kd_contains_helper(struct kdnode *node, BVH_Node *data, struct kdnode **fou
 }
 BVH_Node* kd_find_best_match(struct kdtree *tree, BVH_Node *A)
 {
+	double dummy =0;
+	return kd_find_best_match_with_sq(tree, A, &dummy);
+}
+BVH_Node* kd_find_best_match_with_sq(struct kdtree *tree, BVH_Node *A, double *dist_sq)
+{
     struct kdres *set;
-    set = kd_nearest_range3f(tree, A->bbox.center.x, A->bbox.center.y, A->bbox.center.z, 10.0);
-    BVH_Node *C = kd_res_item_data(set);
+    set = kd_nearest_range3f(tree, A->bbox.center.x, A->bbox.center.y, A->bbox.center.z, 5.0);
+    BVH_Node *C = kd_res_item_data_with_sq(set, dist_sq);
     // cerr << "     A->id " << A->id << ", C->id " << C->id << endl;
     while(A->id == C->id){
         if(kd_res_next(set)){
-            C = kd_res_item_data(set);
+            C = kd_res_item_data_with_sq(set, dist_sq);
         }else{cerr << "well crapo. kdtree.c ~line 300" << endl;}
     }
     // cerr << "     A->id=" << A->id << " will be paired with C->id=" << C->id << endl;
@@ -698,6 +703,18 @@ BVH_Node *kd_res_item(struct kdres *rset, double *pos)
 	return 0;
 }
 
+BVH_Node *kd_res_item_with_sq(struct kdres *rset, double *pos, double *dist_sq)
+{
+	if(rset->riter) {
+		if(pos) {
+			memcpy(pos, rset->riter->item->pos, rset->tree->dim * sizeof *pos);
+		}
+		*dist_sq = rset->riter->dist_sq;
+		return rset->riter->item->data;
+	}
+	return 0;
+}
+
 BVH_Node *kd_res_itemf(struct kdres *rset, float *pos)
 {
 	if(rset->riter) {
@@ -735,6 +752,11 @@ BVH_Node *kd_res_item3f(struct kdres *rset, float *x, float *y, float *z)
 BVH_Node *kd_res_item_data(struct kdres *set)
 {
 	return kd_res_item(set, 0);
+}
+
+BVH_Node *kd_res_item_data_with_sq(struct kdres *set, double *dist_sq)
+{
+	return kd_res_item_with_sq(set, 0, dist_sq);
 }
 
 /* ---- hyperrectangle helpers ---- */
