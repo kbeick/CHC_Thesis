@@ -12,7 +12,7 @@
 #define LEAF_SIZE 4				// Number of Triangles in a leaf
 #define NON_LEAF_SIZE 16
 #define LEAF_FLAG 0xFF800000
-#define TRAVERSAL_COST .125f	//this doesn't seem to have a effect
+#define TRAVERSAL_COST .125f
 
 static int inner_node_counter = 0;
 int level=0;
@@ -59,7 +59,7 @@ void printBVH(BVH_Node* node, int level)
 	if(node == NULL){return;}
 
 	cout << "level ";
-	for(int l=0; l<level; l++){ cout << "*"; }
+	for(int l=0; l<level; l++){ cout << "(*)"; }
 	cout << endl << *node << endl;
 
 	level++;
