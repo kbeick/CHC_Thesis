@@ -41,7 +41,7 @@ int CalculateBestAxis(Triangle* triangles, int count, BBox total, int &splitPoin
         float left_cost;
         float right_cost;
         int numDivs=100;
-        int stride =count/numDivs;
+        int stride = count/numDivs;
         while(stride==0)
         {
             numDivs/=2;
@@ -94,26 +94,27 @@ void BuildBVH_topdown(Triangle* triangles, BVH_Node *current, BVH_Node *parent,
     {   
         current->bbox.expandToInclude(triangles[i].bbox);
     }
-
     // cerr << "found the total bbox for the array" << endl;
 
-    // cerr<<"LeafCheck"<<endl;
-    //At a leaf node, add triangles to the node and return
+    /* AT A LEAF, MAKE A LEAF NODE AND RETURN */
     if (count <= LEAF_SIZE){
-        // cerr<<"At LEAF with count " <<count <<endl;
+        // cerr<<"At LEAF with num triangles: " << count << endl;
         current->triangles = triangles;
         current->triangle_count=count;
-        for(int i=0; i<MAX_BRANCHING_FACTOR; i++) current->children[i] = NULL;
-        flatArrayCount+=current->triangle_count+(NON_LEAF_SIZE-2);
+        for(int i=0; i<MAX_BRANCHING_FACTOR; i++){ current->children[i] = NULL; }
+        flatArrayCount += current->triangle_count+(NON_LEAF_SIZE-2);
         leafCount++;
         current->id=-1;
         return;
     }
-    current->id=inner_node_counter;
+
+    /* NOT A LEAF */   
+    // cerr<<"not a leaf"<<endl;
+    current->id = inner_node_counter;
     inner_node_counter++;
-    flatArrayCount+=NON_LEAF_SIZE;
+    flatArrayCount += NON_LEAF_SIZE;
     // Not at a leaf node, sort along an axis and recurse CalculateBestAxis(triangles, count,current->bbox)
-    // cerr<<"Sorting"<<endl;
+
     int splitPoint;
     int bestAxis;
 
