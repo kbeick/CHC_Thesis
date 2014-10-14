@@ -238,7 +238,7 @@ int main(int argc, char** argv)
     data_log << "BUILD TIME  " << stopwatch->read() << endl;
 
     cerr << "\nFINISHED BUILDING TREE " << (construction_method == TOPDOWN ? "top down" : "bottom up" ) << endl;
-    // printBVH(root);
+    // printBVH(root, 0);
     
     int flat_array_len;
     flat_array = bvhToFlatArray(root, &flat_array_len, branching_factor);
