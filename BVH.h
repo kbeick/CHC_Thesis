@@ -70,6 +70,31 @@ void printBVH(BVH_Node* node, int level)
 	}
 }
 
+
+void printBVH_depth(BVH_Node* node, int level)
+{
+	if(node->children[0] == NULL){
+		for(int i=0; i<level; i++){cout << "   ";}
+		cout << node->triangle_count << endl;
+		return;
+	}
+
+	for (int i = branching_factor-1; i >= branching_factor/2; --i)
+	{
+		printBVH_depth(node->children[i], level+1);
+	}
+	
+	for(int i=0; i<level; i++){cout << "   ";}
+	cout << node->triangle_count << endl;
+
+	for (int i = branching_factor/2-1; i >= 0; --i)
+	{
+		printBVH_depth(node->children[i], level+1);
+	}
+}
+
+
+
 float* bvhToFlatArray(BVH_Node *root, int *size, int branching_factor){
 	assert (branching_factor==2 || branching_factor==4 || branching_factor==8);
 
