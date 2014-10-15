@@ -62,6 +62,7 @@ void FindBestSplitPoints(int BF, Triangle* triangles, int count, float total_are
             for(int j = i+stride;  j < count-(1*stride);  j+=stride){ 
             for(int k = j+stride;  k < count-(0*stride);  k+=stride){    
             /* ------------------------------------------------------------------------------------------------------------------------- */
+                // cerr << i << "  " << j << "  " << k << "  "<< endl;
                 int loop[] = {0,i,j,k,count};
                 for(int bf=0; bf<branching_factor; bf++){
                     bboxes[bf].clear();
@@ -251,12 +252,12 @@ void BuildBVH_topdown(Triangle* triangles, BVH_Node *current, BVH_Node *parent,
     }
 
 
-    // BuildBVH_topdown(triangles, current->children[0], current, splitPoint[0], depth+1);
+    BuildBVH_topdown(triangles, current->children[0], current, splitPoint[0], depth+1);
 
-    // for(int i=1; i<branching_factor; i++){
-    //     int split_size =  i<BF_1 ? splitPoint[i]-splitPoint[i-1] : count - splitPoint[i-1];
-    //     BuildBVH_topdown(triangles+splitPoint[i-1], current->children[i], current, split_size, depth+1);
-    // }
+    for(int i=1; i<branching_factor; i++){
+        int split_size =  i<BF_1 ? splitPoint[i]-splitPoint[i-1] : count - splitPoint[i-1];
+        BuildBVH_topdown(triangles+splitPoint[i-1], current->children[i], current, split_size, depth+1);
+    }
 
     // // int split_size = count - splitPoint[BF_1];
     // // BuildBVH_topdown((triangles+splitPoint[BF_1]), current->children[BF_1], current, split_size, depth+1);
@@ -264,9 +265,9 @@ void BuildBVH_topdown(Triangle* triangles, BVH_Node *current, BVH_Node *parent,
 
 
     // original
-    int rightCount = count-splitPoint[0];
-    BuildBVH_topdown(triangles,              current->children[0], current, splitPoint[0], depth+1);
-    BuildBVH_topdown((triangles+splitPoint[0]), current->children[1], current, rightCount, depth+1);
+    // int rightCount = count-splitPoint[0];
+    // BuildBVH_topdown(triangles,              current->children[0], current, splitPoint[0], depth+1);
+    // BuildBVH_topdown((triangles+splitPoint[0]), current->children[1], current, rightCount, depth+1);
 
 
     // BuildBVH_topdown((triangles),               current->children[0], current, splitPoint[0], depth+1);
