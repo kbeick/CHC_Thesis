@@ -23,7 +23,7 @@ do
 .
         w
 EOF
-        sleep 1
+        sleep 0.2
         # say "SUCCESS!"
     else  
         ed -s log_data_output.txt << "EOF"
@@ -33,7 +33,7 @@ xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 .
         w
 EOF
-        sleep 1
+        sleep 0.2
         say "FAILED!"
     fi
 

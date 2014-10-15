@@ -76,15 +76,17 @@ print_params()
     cerr << "~~~~got camera pos: " << campos[0] << ", " << campos[1] << ", " << campos[2] << endl;
 }
 
-void
+int
 SetConstructionMethod(char* input)
 {
+    int construction_method = -1;
     if(strcmp(input, "td")==0) construction_method = TOPDOWN;
     else if(strcmp(input, "bu")==0) construction_method = BOTTOMUP;
     else{
         // cerr << input << endl;
         throw std::invalid_argument( "ERROR: Construction method must be either td or bu (top down or bottom up)\n" );
     }
+    return construction_method;
 }
 
 Camera*
@@ -125,7 +127,6 @@ WriteImage(vtkImageData *img, const char *filename)
     writer->Delete();
 }
 
-
 int main(int argc, char** argv)
 {
     Stopwatch* stopwatch = new Stopwatch();
@@ -142,12 +143,29 @@ int main(int argc, char** argv)
     if (argc != 9 && argc != 10){ cerr << USAGE_MSG; exit(0);}
     cerr << "PROCESSING " << argv[1] << endl;
     try{
+        // int cm = SetConstructionMethod(argv[3]);
+
+        // static const globals Globals(atoi( argv[2] ), cm, atof(argv[8]), atof(argv[7]));
+
         objReader = new ObjReader(argv[1]);
         branching_factor = atoi( argv[2] );
-        SetConstructionMethod(argv[3]);
+        construction_method = SetConstructionMethod(argv[3]);
         c->position = new Vec3f(atof(argv[4]),atof(argv[5]),atof(argv[6]));
         numReflections = atof(argv[7]);
         opacity = atof(argv[8]);
+
+
+        // objReader = new ObjReader(argv[1]);
+        // // branching_factor = atoi( argv[2] );
+        // globals.branching_factor = atoi( argv[2] ); 
+        // globals.constr_mthd = SetConstructionMethod(argv[3]);
+        // c->position = new Vec3f(atof(argv[4]),atof(argv[5]),atof(argv[6]));
+        // // numReflections = atof(argv[7]);
+        // globals.numReflections = atof(argv[7]));
+        // // opacity = atof(argv[8]);
+        // globals.opacity = atof(argv[8]);
+
+
     }catch (const std::exception &exc){
         // catch anything thrown within try block that derives from std::exception
         std::cerr << exc.what();
@@ -167,7 +185,7 @@ int main(int argc, char** argv)
 
     char *outFileName;
     if(argv[9]){ outFileName = argv[9]; }
-    else{ outFileName = "myOutput"; }
+    else{ outFileName = (char*)"myOutput"; }
 
     // print_params();
 
@@ -203,7 +221,7 @@ int main(int argc, char** argv)
     CreateTriangleArray(tris, numTriangles, verts, normals);
 
     // for(int triIndex = 0; triIndex < numTriangles; triIndex++){
-    //     cerr << "Triangle " << triIndex << ":\n" << tris[triIndex] ;
+    //     cerr << "Triangle " << triIndex << ":\n" << tris[triIndex].bbox.count ;
     // }
 
     // for(int i=0; i<numTriangles*9; i++){
@@ -286,7 +304,7 @@ int main(int argc, char** argv)
             // ----CALCULATE THE RAY FROM CAMERA TO PIXEL-----
             Vec3f rayVector = look->unitDir + x_comp + y_comp;
             Ray* curRay = new Ray(*c->position, rayVector);
-            // cerr << "\n\npixel " << w << "," << h << " :: ";
+            cerr << "\n\npixel " << w << "," << h << " :: ";
             // cerr << "curRay: " << *curRay << endl;
 
             // ----TRAVERSE THE BVH
