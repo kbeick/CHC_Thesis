@@ -257,6 +257,7 @@ int main(int argc, char** argv)
 
     cerr << "\nFINISHED BUILDING TREE " << (construction_method == TOPDOWN ? "top down" : "bottom up" ) << endl;
     // printBVH(root, 0);
+    // printBVH_depth(root, 0);
     
     int flat_array_len;
     flat_array = bvhToFlatArray(root, &flat_array_len, branching_factor);
