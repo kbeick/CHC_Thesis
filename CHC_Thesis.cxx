@@ -166,7 +166,7 @@ int main(int argc, char** argv)
 
     char *outFileName;
     if(argv[9]){ outFileName = argv[9]; }
-    else{ outFileName = "myOutput"; }
+    else{ outFileName = (char*)"myOutput"; }
 
     // print_params();
 
@@ -238,6 +238,7 @@ int main(int argc, char** argv)
 
     cerr << "\nFINISHED BUILDING TREE" << endl;
     // printBVH(root);
+    printBVH_depth(root, 0);
     
     int flat_array_len;
     flat_array = bvhToFlatArray(root, &flat_array_len, branching_factor);
