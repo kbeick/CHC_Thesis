@@ -249,7 +249,10 @@ int main(int argc, char** argv)
     stopwatch->reset();
 
     // Call Specified BVH Constructor
-    if (construction_method == TOPDOWN){         BuildBVH_topdown(tris, root, root->parent, numTriangles, 0); }
+    if (construction_method == TOPDOWN){         
+        BuildBVH_topdown(tris, root, root->parent, numTriangles, 0); 
+        // BuildBVH_topdown_OLD(tris, root, root->parent, numTriangles, 0); 
+    }
     // else if (construction_method == BOTTOMUP){   BuildBVH_bottomup(tris, &root, numTriangles); }
     else if (construction_method == BOTTOMUP){   BuildBVH_bottomup(tris, &root, numTriangles); }
 
@@ -258,6 +261,8 @@ int main(int argc, char** argv)
     cerr << "\nFINISHED BUILDING TREE " << (construction_method == TOPDOWN ? "top down" : "bottom up" ) << endl;
     // printBVH(root, 0);
     // printBVH_depth(root, 0);
+
+    // return 0;
     
     int flat_array_len;
     flat_array = bvhToFlatArray(root, &flat_array_len, branching_factor);
@@ -305,7 +310,7 @@ int main(int argc, char** argv)
             // ----CALCULATE THE RAY FROM CAMERA TO PIXEL-----
             Vec3f rayVector = look->unitDir + x_comp + y_comp;
             Ray* curRay = new Ray(*c->position, rayVector);
-            cerr << "\n\npixel " << w << "," << h << " :: ";
+            // cerr << "\n\npixel " << w << "," << h << " :: ";
             // cerr << "curRay: " << *curRay << endl;
 
             // ----TRAVERSE THE BVH

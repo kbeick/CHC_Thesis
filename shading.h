@@ -250,7 +250,7 @@ traverseFlatArray(float* flat_array, int idx, Ray* ray, Vec3f* color, int traceD
 
         // Traverse closest intersected Bounding Box
         while(1){
-            cerr << "another iteration of while" << endl;
+            // cerr << "another iteration of while" << endl;
             int least_box = -1;
 
             for(int i=0; i<branching_factor; i++){
