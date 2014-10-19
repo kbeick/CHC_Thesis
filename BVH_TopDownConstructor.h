@@ -43,7 +43,7 @@ int CalculateBestAxis(Triangle* triangles, int count, BBox total, int* splitPoin
         float box_costs[MAX_BRANCHING_FACTOR] = {};
         float new_cost = 0.0;
 
-        int numDivs=100;
+        int numDivs=200/branching_factor;       // Change numDivs based on BF, so higher BF doesn't take forever!
         int stride = count/numDivs;
         while(stride==0)
         {
@@ -121,8 +121,10 @@ int CalculateBestAxis(Triangle* triangles, int count, BBox total, int* splitPoin
             // Branching Factor of 8
             case 8:{
                 // cerr << "BF 8" << endl;
-                for(int a = 0+stride;  a < count-(6*stride);  a+=stride){   
+                for(int a = 0+stride;  a < count-(6*stride);  a+=stride){ 
+                cerr << "a="<< a << endl;  
                 for(int b = a+stride;  b < count-(5*stride);  b+=stride){ 
+                cerr << "    b="<< b << endl;  
                 for(int c = b+stride;  c < count-(4*stride);  c+=stride){   
                 for(int d = c+stride;  d < count-(3*stride);  d+=stride){   
                 for(int e = d+stride;  e < count-(2*stride);  e+=stride){ 
