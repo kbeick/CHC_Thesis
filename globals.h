@@ -37,40 +37,17 @@ struct LightingParameters
 
 
 // RUN TIME CONSTANTS
-std::string USAGE_MSG = "USAGE: ./CHC_Thesis.app <model filename> <children per node (int)> <construction method (td or bu)> <camera pos (3 whitespace separated floats)> <numReflections (int)> <opacity (float)>\n";
+std::string USAGE_MSG = "USAGE: ./CHC_Thesis.app <model filename> <children per node (int)> <construction method (td or bu)> <camera pos (3 whitespace separated floats)> <depthOfTrace (int)> <opacity (float)>\n";
 
 static bool PRODUCE_IMAGE = true;
 static int IMAGE_WIDTH =  300;
 static int IMAGE_HEIGHT = 300;
-static double GLOBAL_REFLECT_COEF = 0.2;        /* Global Reflectivity */
-
-// struct Globals
-// {
-//     const int branching_factor;         // Children per Node
-//     int constr_mthd;                // TOPDOWN==1 ; BOTTOMUP==2
-//     double opacity;               // Global Opacity
-//     int numReflections;             // Depth of Ray Tracing, number of reflections accounted for
-//     // static double reflec = 0.0;             // Global Reflectivity
-
-//     Globals(int bf, int cm, double opac, int nRfl)
-//         : branching_factor(bf)
-//         , constr_mthd(cm)
-//         , opacity(opac)
-//         , numReflections(nRfl)
-//     {}
-//     Globals()
-//         : branching_factor(0)
-//         , constr_mthd(0)
-//         , opacity(0.0)
-//         , numReflections(0)
-//     {}
-// };
-// static struct Globals globals;
+static double GLOBAL_REFLECT_COEF = 0.4;        /* Global Reflectivity */
 
 static int branching_factor;               // Children per Node
 static int construction_method = 0;        // TOPDOWN==1 ; BOTTOMUP==2
 static double opacity = 0.0;               // Global Opacity
-static int numReflections = 0;             // Depth of Ray Tracing, number of reflections accounted for
+static int depthOfTrace = 0;             // Depth of Ray Tracing, number of reflections accounted for
 // static double reflec = 0.0;             // Global Reflectivity
 
 LightingParameters* lp = new LightingParameters();
