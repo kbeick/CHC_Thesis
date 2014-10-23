@@ -92,6 +92,7 @@ int CalculateBestAxis(Triangle* triangles, int count, BBox total, int* splitPoin
             case 4:{
                 // cerr << "BF 4" << endl;
                 for(int i = 0+stride;  i < count-(2*stride);  i+=stride){   
+                // cerr << "i="<< i << endl;  
                 for(int j = i+stride;  j < count-(1*stride);  j+=stride){ 
                 for(int k = j+stride;  k < count-(0*stride);  k+=stride){    
                 /* ------------------------------------------------------------------------------------------------------------------------- */
@@ -122,9 +123,9 @@ int CalculateBestAxis(Triangle* triangles, int count, BBox total, int* splitPoin
             case 8:{
                 // cerr << "BF 8" << endl;
                 for(int a = 0+stride;  a < count-(6*stride);  a+=stride){ 
-                cerr << "a="<< a << endl;  
+                // cerr << "a="<< a << endl;  
                 for(int b = a+stride;  b < count-(5*stride);  b+=stride){ 
-                cerr << "    b="<< b << endl;  
+                // cerr << "    b="<< b << endl;  
                 for(int c = b+stride;  c < count-(4*stride);  c+=stride){   
                 for(int d = c+stride;  d < count-(3*stride);  d+=stride){   
                 for(int e = d+stride;  e < count-(2*stride);  e+=stride){ 
@@ -273,6 +274,11 @@ void BuildBVH_topdown(Triangle* triangles, BVH_Node *current, BVH_Node *parent,
 }
 
 
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
 
 int CalculateBestAxis_OLD(Triangle* triangles, int count, BBox total, int &splitPoint)
