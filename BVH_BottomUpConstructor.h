@@ -54,7 +54,10 @@ BVH_Node* ProduceParentNode(BVH_Node *A, BVH_Node *B, int *newID)
     return C;
 }
 
-/* Combines the properties + attributes of two BVH_Nodes into one */
+/* 
+ * Combines the properties + attributes of two BVH_Nodes into one 
+ * Resulting Node has NULL parent pointer,
+ */
 BVH_Node* MergeNodes(BVH_Node* A, BVH_Node* B)
 {
     BVH_Node *mergedNode = new BVH_Node();
@@ -111,8 +114,8 @@ void BuildBVH_bottomup(Triangle* triangles, BVH_Node **root, int count)
 
     kd = kd_create(3);
 
+    /* Make a BVH_Node for each triangle */
     for(int t=0; t < numTriangles; t++){
-        /* Make a BVH_Node for each triangle */
         BVH_Node* node = SetUpNodeFor_BottomUp(&triangles[t]);
         kd_insert3f(kd, node->bbox.center.x, node->bbox.center.y, node->bbox.center.z, node);
         // cerr << "added node at " << node->triangles[0].c[0] << ", " << node->triangles[0].c[1] << ", " <<node->triangles[0].c[2] << endl;
@@ -206,11 +209,14 @@ void BuildBVH_bottomup(Triangle* triangles, BVH_Node **root, int count)
 }
 
 
-/* ----------------------------------------------------------------------------------------------------------- */
-/* ----------------------------------------------------------------------------------------------------------- */
-/* ----------------------------------------------------------------------------------------------------------- */
-/* First, hella slow Bottom Up constructor and its helpers */
 
+
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+/* First, hella slow Bottom Up constructor and its helpers */
 
 struct Pair {
     float distance;
