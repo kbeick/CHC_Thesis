@@ -48,6 +48,7 @@ class BVH_Node{
 ostream& operator<<(ostream& out, const BVH_Node& x ) 
 {
 	out << "id is " << x.id << endl;
+	if(x.parent!=NULL){out << "parent_id is " << x.parent->id << endl;}
 	out << "triangle_count " << x.triangle_count << endl;
 	out << x.bbox << endl;
 	return out;
