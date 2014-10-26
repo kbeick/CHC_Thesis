@@ -76,15 +76,17 @@ print_params()
     cerr << "~~~~got camera pos: " << campos[0] << ", " << campos[1] << ", " << campos[2] << endl;
 }
 
-void
+int
 SetConstructionMethod(char* input)
 {
+    int construction_method = -1;
     if(strcmp(input, "td")==0) construction_method = TOPDOWN;
     else if(strcmp(input, "bu")==0) construction_method = BOTTOMUP;
     else{
         // cerr << input << endl;
         throw std::invalid_argument( "ERROR: Construction method must be either td or bu (top down or bottom up)\n" );
     }
+    return construction_method;
 }
 
 Camera*
@@ -125,7 +127,6 @@ WriteImage(vtkImageData *img, const char *filename)
     writer->Delete();
 }
 
-
 int main(int argc, char** argv)
 {
     Stopwatch* stopwatch = new Stopwatch();
@@ -140,13 +141,31 @@ int main(int argc, char** argv)
 
     // HANDLE AND SET PARAMETERS
     if (argc != 9 && argc != 10){ cerr << USAGE_MSG; exit(0);}
+    cerr << "PROCESSING " << argv[1] << endl;
     try{
+        // int cm = SetConstructionMethod(argv[3]);
+
+        // static const globals Globals(atoi( argv[2] ), cm, atof(argv[8]), atof(argv[7]));
+
         objReader = new ObjReader(argv[1]);
         branching_factor = atoi( argv[2] );
-        SetConstructionMethod(argv[3]);
+        construction_method = SetConstructionMethod(argv[3]);
         c->position = new Vec3f(atof(argv[4]),atof(argv[5]),atof(argv[6]));
-        numReflections = atof(argv[7]);
+        depthOfTrace = atof(argv[7]);
         opacity = atof(argv[8]);
+
+
+        // objReader = new ObjReader(argv[1]);
+        // // branching_factor = atoi( argv[2] );
+        // globals.branching_factor = atoi( argv[2] ); 
+        // globals.constr_mthd = SetConstructionMethod(argv[3]);
+        // c->position = new Vec3f(atof(argv[4]),atof(argv[5]),atof(argv[6]));
+        // // depthOfTrace = atof(argv[7]);
+        // globals.depthOfTrace = atof(argv[7]));
+        // // opacity = atof(argv[8]);
+        // globals.opacity = atof(argv[8]);
+
+
     }catch (const std::exception &exc){
         // catch anything thrown within try block that derives from std::exception
         std::cerr << exc.what();
@@ -160,7 +179,7 @@ int main(int argc, char** argv)
         "  Branching Factor: " << branching_factor <<
         "  Constr Method: " << argv[3] <<
         "  Campos: " << *c->position <<
-        "  Num Reflections: " << numReflections <<
+        "  Depth of Trace: " << depthOfTrace <<
         "  Opacity: " << opacity <<
         endl;
 
@@ -169,6 +188,8 @@ int main(int argc, char** argv)
     else{ outFileName = (char*)"myOutput"; }
 
     // print_params();
+
+    EMPTY_NODE_BBOX = new BBox(*c->position * 1.1, *c->position * 1.1);
 
     vtkImageData *image;
     Screen* screen = new Screen;
@@ -202,7 +223,7 @@ int main(int argc, char** argv)
     CreateTriangleArray(tris, numTriangles, verts, normals);
 
     // for(int triIndex = 0; triIndex < numTriangles; triIndex++){
-    //     cerr << "Triangle " << triIndex << ":\n" << tris[triIndex] ;
+    //     cerr << "Triangle " << triIndex << ":\n" << tris[triIndex].bbox.count ;
     // }
 
     // for(int i=0; i<numTriangles*9; i++){
@@ -230,15 +251,20 @@ int main(int argc, char** argv)
     stopwatch->reset();
 
     // Call Specified BVH Constructor
-    if (construction_method == TOPDOWN){         BuildBVH_topdown(tris, root, root->parent, numTriangles, 0); }
-    // else if (construction_method == BOTTOMUP){   BuildBVH_bottomup(tris, &root, numTriangles); }
-    else if (construction_method == BOTTOMUP){   BuildBVH_bottomup(tris, &root, numTriangles); }
+    if (construction_method == TOPDOWN){         
+        BuildBVH_topdown(tris, root, root->parent, numTriangles, 0); 
+        // BuildBVH_topdown_OLD(tris, root, root->parent, numTriangles, 0); 
+    }
+    else if (construction_method == BOTTOMUP){   
+        BuildBVH_bottomup(tris, &root, numTriangles); 
+        if(branching_factor!=2){ BVH_Bottomup_Collapser(root); }
+    }
 
     data_log << "BUILD TIME  " << stopwatch->read() << endl;
 
-    cerr << "\nFINISHED BUILDING TREE" << endl;
-    // printBVH(root);
-    printBVH_depth(root, 0);
+    cerr << "\nFINISHED BUILDING TREE " << (construction_method == TOPDOWN ? "top down" : "bottom up" ) << endl;
+    // printBVH(root, 0);
+    // printBVH_depth(root, 0);
     
     int flat_array_len;
     flat_array = bvhToFlatArray(root, &flat_array_len, branching_factor);
@@ -293,7 +319,7 @@ int main(int argc, char** argv)
             Vec3f* color = new Vec3f(0,0,0);    /* Pixel Color */
             stopwatch->reset();                 /* Start Timer */
 
-            bool b = traverseFlatArray(flat_array, 0, curRay, color, numReflections, &node_visit_data[pixel/3]);
+            bool b = traverseFlatArray(flat_array, 0, curRay, color, depthOfTrace, &node_visit_data[pixel/3]);
             
             traversal_times[w*IMAGE_HEIGHT + h] = stopwatch->read(); /* Record Traversal Time */
 

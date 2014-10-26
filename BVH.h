@@ -12,7 +12,7 @@
 #define LEAF_SIZE 4				// Number of Triangles in a leaf
 #define NON_LEAF_SIZE 16
 #define LEAF_FLAG 0xFF800000
-#define TRAVERSAL_COST .125f	//this doesn't seem to have a effect
+#define TRAVERSAL_COST .125f
 
 static int inner_node_counter = 0;
 int level=0;
@@ -48,20 +48,26 @@ class BVH_Node{
 ostream& operator<<(ostream& out, const BVH_Node& x ) 
 {
 	out << "id is " << x.id << endl;
+	if(x.parent!=NULL){out << "parent_id is " << x.parent->id << endl;}
 	out << "triangle_count " << x.triangle_count << endl;
 	out << x.bbox << endl;
 	return out;
 }
 
 
-void printBVH(BVH_Node* node)
+void printBVH(BVH_Node* node, int level)
 {
 	if(node == NULL){return;}
 
-	cout << endl << *node;
+	cout << "level ";
+	for(int l=0; l<level; l++){ cout << "(*)"; }
+	cout << endl << *node << endl;
+
+	level++;
+
 	for (int i = 0; i < MAX_BRANCHING_FACTOR; ++i)
 	{
-		printBVH(node->children[i]);
+		printBVH(node->children[i], level);
 	}
 }
 
@@ -87,6 +93,29 @@ void printBVH_depth(BVH_Node* node, int level)
 		printBVH_depth(node->children[i], level+1);
 	}
 }
+
+void printBVH_depth(BVH_Node* node, int level)
+{
+	if(node->children[0] == NULL){
+		for(int i=0; i<level; i++){cout << "   ";}
+		cout << node->triangle_count << endl;
+		return;
+	}
+
+	for (int i = branching_factor-1; i >= branching_factor/2; --i)
+	{
+		printBVH_depth(node->children[i], level+1);
+	}
+	
+	for(int i=0; i<level; i++){cout << "   ";}
+	cout << node->triangle_count << endl;
+
+	for (int i = branching_factor/2-1; i >= 0; --i)
+	{
+		printBVH_depth(node->children[i], level+1);
+	}
+}
+
 
 
 float* bvhToFlatArray(BVH_Node *root, int *size, int branching_factor){

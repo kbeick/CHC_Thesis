@@ -248,7 +248,8 @@ void ObjReader::loadMTL(const std::string &mtlFilename)
 
         if (!strncmp(token, "newmtl", 6)) {
             parseSep(token += 6);
-            std::string name(token); printf("Name of the material: %s\n", name.c_str());
+            std::string name(token); 
+            // printf("Name of the material: %s\n", name.c_str());
             mat = new Material;
             materials[name] = mat;
             continue;
@@ -315,13 +316,12 @@ ObjReader::ObjReader(const char *filename)
             /*! use material */
             if (!strncmp(token, "usemtl", 6) && isSep(token[6]))
             {
-                cerr<<"usemtl!!"<<endl;
                 flushFaceGroup();
                 std::string name(parseSep(token += 6));
                 if (materials.find(name) == materials.end()) curMaterial = defaultMaterial;
                 else curMaterial = materials[name];
 
-                cerr << "curMaterial is " << curMaterial << endl;
+                // cerr << "curMaterial is " << curMaterial << endl;
                 continue;
             }
             

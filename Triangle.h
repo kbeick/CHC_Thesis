@@ -96,6 +96,7 @@ class Triangle{
 			bbox.max=Vec3f(getXMax(),getYMax(),getZMax());
 			bbox.extent=bbox.max-bbox.min;
 	 		bbox.center = (bbox.max+bbox.min)*.5;
+	 		bbox.count = 0;
 		}
 
 		bool intersect(const Ray &r, float* isectData) const

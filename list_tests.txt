@@ -1,24 +1,54 @@
-#./CHC_Thesis.app/Contents/MacOS/CHC_Thesis ./models/cube/cube.obj      2   td  -3 3  2         1   0.5  cube_TD
+./CHC_Thesis.app/Contents/MacOS/CHC_Thesis ./models/cube/cube.obj      2   td  -3 3  2         1   0.0  cube_TD_2
+./CHC_Thesis.app/Contents/MacOS/CHC_Thesis ./models/cube/cube.obj      4   td  -3 3  2         1   0.0  cube_TD_4
+./CHC_Thesis.app/Contents/MacOS/CHC_Thesis ./models/cube/cube.obj      8   td  -3 3  2         1   0.0  cube_TD_8
 
-#./CHC_Thesis.app/Contents/MacOS/CHC_Thesis ./models/cube/cube.obj      2   bu  -3 3  2         1   0.5  cube_BU
+./CHC_Thesis.app/Contents/MacOS/CHC_Thesis ./models/cube/cube.obj      2   bu  -3 3  2         1   0.0  cube_BU_2
+./CHC_Thesis.app/Contents/MacOS/CHC_Thesis ./models/cube/cube.obj      4   bu  -3 3  2         1   0.0  cube_BU_4
+./CHC_Thesis.app/Contents/MacOS/CHC_Thesis ./models/cube/cube.obj      8   bu  -3 3  2         1   0.0  cube_BU_8
 
+#./CHC_Thesis.app/Contents/MacOS/CHC_Thesis ./models/cube/cube.obj      2   bu  -3 3  2         1   0.0  cube_BU
 
-./CHC_Thesis.app/Contents/MacOS/CHC_Thesis ./models/cup/cup.obj        2   td  -2 5  15        1   0.5  cup_TD
-
-./CHC_Thesis.app/Contents/MacOS/CHC_Thesis ./models/cup/cup.obj        2   bu  -2 5  15        1   0.5  cup_BU
-
-
-#./CHC_Thesis.app/Contents/MacOS/CHC_Thesis ./models/cup2/cup2.obj      2   td  -4 9  13.6      1   0.5  cup2_TD
-
-#./CHC_Thesis.app/Contents/MacOS/CHC_Thesis ./models/cup2/cup2.obj      2   bu  -4 9  13.6      1   0.5  cup2_BU
+#./CHC_Thesis.app/Contents/MacOS/CHC_Thesis ./models/cube/cube.obj      4   bu  -3 3  2         1   0.0  cube_BU_4
 
 
-#./CHC_Thesis.app/Contents/MacOS/CHC_Thesis ./models/head/head.obj      2   td  0  0  1         1   0.0  head_TD
-
-#./CHC_Thesis.app/Contents/MacOS/CHC_Thesis ./models/head/head.obj      2   bu  0  0  1         1   0.0  head_BU
 
 
-#./CHC_Thesis.app/Contents/MacOS/CHC_Thesis ./models/buddha/buddha.obj  2   td  .5 0  -2        2   0.0  buddha_TD
 
-#./CHC_Thesis.app/Contents/MacOS/CHC_Thesis ./models/buddha/buddha.obj  2   bu  .5 0  -2        2   0.0  buddha_BU
+#./CHC_Thesis.app/Contents/MacOS/CHC_Thesis ./models/cup/cup.obj        2   td  -2 5  15        1   0.0  cup_TD
+
+
+#./CHC_Thesis.app/Contents/MacOS/CHC_Thesis ./models/cup/cup.obj        2   bu  -2 5  15        1   0.0  cup_BU
+
+
+
+
+
+#./CHC_Thesis.app/Contents/MacOS/CHC_Thesis ./models/cup2/cup2.obj      2   td  -4 9  13.6      1   0.0  cup2_TD
+#./CHC_Thesis.app/Contents/MacOS/CHC_Thesis ./models/cup2/cup2.obj      4   td  -4 9  13.6      1   0.0  cup2_TD
+
+
+#./CHC_Thesis.app/Contents/MacOS/CHC_Thesis ./models/cup2/cup2.obj      2   bu  -4 9  13.6      1   0.0  cup2_BU
+
+
+
+
+
+#./CHC_Thesis.app/Contents/MacOS/CHC_Thesis ./models/head/head.obj      2   td  0  0  1         1   0.0  head_TD__2
+#./CHC_Thesis.app/Contents/MacOS/CHC_Thesis ./models/head/head.obj      4   td  0  0  1         1   0.0  head_TD__4
+#./CHC_Thesis.app/Contents/MacOS/CHC_Thesis ./models/head/head.obj      8   td  0  0  1         1   0.0  head_TD__8
+
+
+#./CHC_Thesis.app/Contents/MacOS/CHC_Thesis ./models/head/head.obj      2   bu  0  0  1         1   0.0  head_BU__2
+#./CHC_Thesis.app/Contents/MacOS/CHC_Thesis ./models/head/head.obj      4   bu  0  0  1         1   0.0  head_BU__4
+#./CHC_Thesis.app/Contents/MacOS/CHC_Thesis ./models/head/head.obj      8   bu  0  0  1         1   0.0  head_BU__8
+
+
+
+
+
+
+#./CHC_Thesis.app/Contents/MacOS/CHC_Thesis ./models/buddha/buddha.obj  2   td  .5 0  -2        1   0.0  buddha_TD
+
+
+#./CHC_Thesis.app/Contents/MacOS/CHC_Thesis ./models/buddha/buddha.obj  2   bu  .5 0  -2        1   0.0  buddha_BU
 

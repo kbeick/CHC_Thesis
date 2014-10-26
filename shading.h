@@ -54,10 +54,6 @@ float CalculateShading(LightingParameters* lp, Vec3f viewDirection, Ray* normalR
     Vec3f refl = Vec3f( 2 * LdotN * normal[0]  - lp->lightDir[0], 
                         2 * LdotN * normal[1]  - lp->lightDir[1],
                         2 * LdotN * normal[2]  - lp->lightDir[2]);
-    // double* refl = new double[3];
-    // refl[0] = 2 * LdotN * normal[0]  - lp->lightDir[0];
-    // refl[1] = 2 * LdotN * normal[1]  - lp->lightDir[1];
-    // refl[2] = 2 * LdotN * normal[2]  - lp->lightDir[2];
     
     // Calc the specular lighting contribution
     float spec;
@@ -102,15 +98,15 @@ getColor(Vec3f* color, float* triangleData, Ray* viewDir, int traceDepthToGo)
         // if((int)triangleData[0]%12 ==11){ color->x = 255; color->y = 000; color->z = 127; } // PINK
 
     /* COLOR BY DISTANCE */
-        int nearPlane = 0;
-        int farPlane = 2;
+    int nearPlane = 0;
+    int farPlane = 2;
 
-        double dist_ratio = (triangleData[1]-nearPlane)/(double)(farPlane-nearPlane);
-        int color_ratio = dist_ratio > 1 ? 255 : dist_ratio*255;
+    double dist_ratio = (triangleData[1]-nearPlane)/(double)(farPlane-nearPlane);
+    int color_ratio = dist_ratio > 1 ? 255 : dist_ratio*255;
 
-        color->x = 255;
-        color->y = color_ratio;
-        color->z = color_ratio;
+    color->x = 255;
+    color->y = color_ratio;
+    color->z = color_ratio;
 
 
     /* Get Triangle with the appropriate id */
@@ -144,9 +140,9 @@ getColor(Vec3f* color, float* triangleData, Ray* viewDir, int traceDepthToGo)
     color->z = (unsigned char) ceil441( std::min(255.0, color->z*PhShade));
                 
     // --- APPLY OPACITY ----------
-    color->x = (unsigned char) ceil441( std::min(255.0, color->x*(1-opacity)+opColor->x*opacity));
-    color->y = (unsigned char) ceil441( std::min(255.0, color->y*(1-opacity)+opColor->y*opacity));
-    color->z = (unsigned char) ceil441( std::min(255.0, color->z*(1-opacity)+opColor->z*opacity));
+    color->x = (unsigned char) ceil441( std::min(255.0, color->x*(1-opacity) + opColor->x*opacity));
+    color->y = (unsigned char) ceil441( std::min(255.0, color->y*(1-opacity) + opColor->y*opacity));
+    color->z = (unsigned char) ceil441( std::min(255.0, color->z*(1-opacity) + opColor->z*opacity));
 
     // --- APPLY REFLECTIONS ------
     color->x = (unsigned char) ceil441( std::min(255.0, color->x + GLOBAL_REFLECT_COEF * ill->x));

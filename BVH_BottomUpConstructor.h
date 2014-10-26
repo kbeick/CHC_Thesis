@@ -1,4 +1,9 @@
 #include "./kdtree-0.5.6/kdtree.c"
+#include <vector>
+#include <stack>
+#include <queue>
+
+#include "BVH.h"
 
 
 BVH_Node* SetUpNodeFor_BottomUp(Triangle* triangles)
@@ -54,7 +59,10 @@ BVH_Node* ProduceParentNode(BVH_Node *A, BVH_Node *B, int *newID)
     return C;
 }
 
-/* Combines the properties + attributes of two BVH_Nodes into one */
+/* 
+ * Combines the properties + attributes of two BVH_Nodes into one 
+ * Resulting Node has NULL parent pointer,
+ */
 BVH_Node* MergeNodes(BVH_Node* A, BVH_Node* B)
 {
     BVH_Node *mergedNode = new BVH_Node();
@@ -111,8 +119,8 @@ void BuildBVH_bottomup(Triangle* triangles, BVH_Node **root, int count)
 
     kd = kd_create(3);
 
+    /* Make a BVH_Node for each triangle */
     for(int t=0; t < numTriangles; t++){
-        /* Make a BVH_Node for each triangle */
         BVH_Node* node = SetUpNodeFor_BottomUp(&triangles[t]);
         kd_insert3f(kd, node->bbox.center.x, node->bbox.center.y, node->bbox.center.z, node);
         // cerr << "added node at " << node->triangles[0].c[0] << ", " << node->triangles[0].c[1] << ", " <<node->triangles[0].c[2] << endl;
@@ -206,11 +214,166 @@ void BuildBVH_bottomup(Triangle* triangles, BVH_Node **root, int count)
 }
 
 
-/* ----------------------------------------------------------------------------------------------------------- */
-/* ----------------------------------------------------------------------------------------------------------- */
-/* ----------------------------------------------------------------------------------------------------------- */
-/* First, hella slow Bottom Up constructor and its helpers */
+/*
+ * Not very efficiently written, but it'll do
+ */
+void PostProcessBottomUp(BVH_Node *node)
+{
+    if(node == NULL){return;}
+    bool hasChildren = false;
 
+    // cerr << "PostProcessBottomUp" << endl;
+
+    for(int i=0; i<branching_factor; i++){
+        if(node->children[i] != NULL){
+            hasChildren = true;
+        }
+    }
+    if(!hasChildren){
+        node->id = -1;
+        return;
+    }
+
+    node->id = inner_node_counter++;
+    // cerr << "node id is " << node->id << endl;
+
+
+    for(int i=0; i<branching_factor; i++){
+        PostProcessBottomUp(node->children[i]);
+    }
+
+    if(hasChildren){
+        for(int i=0; i<branching_factor; i++){
+            if(node->children[i] == NULL){
+                node->children[i] = new BVH_Node();
+                node->children[i]->id = -1;
+                node->children[i]->bbox = *EMPTY_NODE_BBOX;
+                node->children[i]->triangle_count = 0;
+                node->children[i]->parent = node;
+                leafCount++;
+            }
+        }
+    }
+
+}
+
+
+void giveChildrenToParent(BVH_Node* parent, std::vector<BVH_Node*> parentsChildren, int numParentsChildren, std::vector<BVH_Node*> children, int numChildren)
+{
+    for (int i = 0; i < numChildren; ++i)
+    {
+        parent->children[i] = children[i];
+        parent->children[i]->parent = parent;
+    }
+
+    for (int i = 0; i < numParentsChildren; ++i)
+    {
+        parent->children[numChildren + i] = parentsChildren[i];
+        parent->children[numChildren + i]->parent = parent;
+    }
+
+    for (int i = numChildren+numParentsChildren; i < MAX_BRANCHING_FACTOR; ++i)
+    {
+        parent->children[i] = NULL;
+    }
+}
+
+
+/*
+ * Takes the BVH and collapses the tree such that each node has at most (branching_factor) children
+ */
+void BVH_Bottomup_Collapser(BVH_Node *root)
+{
+    if(branching_factor != 4 && branching_factor != 8 ){ return; }
+    if(root == NULL){ return; }
+
+    cerr << "~~~~IN BVH_Bottomup_Collapser" << endl;
+
+    std::queue<BVH_Node*> q;
+    std::stack<BVH_Node*> stack;
+    BVH_Node* curr;
+    std::vector<BVH_Node*> children;
+    std::vector<BVH_Node*> parentsChildren;
+    // BVH_Node *children = new BVH_Node[MAX_BRANCHING_FACTOR];
+    // BVH_Node *parentsChildren = new BVH_Node[MAX_BRANCHING_FACTOR]; // NOT INCLUDING CURR!!!
+    int numChildren = 0;
+    int numParentsChildren = 0; // NOT INCLUDING CURR!!!
+
+    /* PSEUDO CODE */
+    // push tree onto stack, breadth first
+    // While (!stack.empty()){
+    //     curr = stack.pop()
+    //     if (curr.children == NULL || curr.parent==NULL){   continue    }
+    //     if (curr.parent.numChildren + curr.numChildren - 1 <= 4(BF) )
+    //         curr.parent.children += curr.left & curr.right
+    // }
+
+    /* Push tree onto stack, breadth first */
+    q.push(root);
+    while(!q.empty()){
+        curr = q.front();
+        q.pop();
+        for (int i = 0; i < MAX_BRANCHING_FACTOR; ++i){
+            if(curr->children[i] != NULL){  q.push(curr->children[i]);  }
+        }
+        stack.push(curr);
+    }
+    /* For each node... */
+    while(!stack.empty()){
+        for(int i=0; i<MAX_BRANCHING_FACTOR; i++){ 
+            children.erase (children.begin(), children.end());
+            parentsChildren.erase (parentsChildren.begin(), parentsChildren.end());
+        }
+
+        curr = stack.top();
+        stack.pop();
+
+        // cerr << "~_~_~_~_~_~_~_el:\n" << *curr << endl;
+
+        if(curr->parent == NULL){ continue; }
+        /* Get children info */
+        numChildren = 0;
+        numParentsChildren = 0;
+        for(int i=0; i<MAX_BRANCHING_FACTOR; i++){
+            if(curr->children[i] != NULL){
+                children.push_back(curr->children[i]);
+                numChildren++;
+            }
+            if( curr->parent->children[i] == NULL 
+                || curr->parent->children[i]->id == curr->id)
+                { continue;
+            }
+            parentsChildren.push_back(curr->parent->children[i]);
+            numParentsChildren++;
+        }
+        /* Decide if we want to give curr's children to curr's parent */
+        if(numChildren==0){ continue; }
+        if(numChildren + numParentsChildren <= branching_factor){
+            /* we do! */
+            giveChildrenToParent(curr->parent, parentsChildren, numParentsChildren, children, numChildren);
+        }
+    }
+
+
+    // printBVH(root, 0);
+
+    // cerr << "re id nodes" << endl;
+
+    /* Re-id nodes */
+    inner_node_counter = 0;
+    PostProcessBottomUp(root);
+
+    cerr << "~~~~DONE IN BVH_Bottomup_Collapser" << endl;
+}
+
+
+
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+/* First, hella slow Bottom Up constructor and its helpers */
 
 struct Pair {
     float distance;
