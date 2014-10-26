@@ -19,6 +19,7 @@ int level=0;
 
 static int flatArrayCount=1;
 static int leafCount=0;
+static int emptyNodeCount = 0;
 
 using namespace std;
 

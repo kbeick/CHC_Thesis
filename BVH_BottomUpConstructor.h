@@ -251,6 +251,7 @@ void PostProcessBottomUp(BVH_Node *node)
                 node->children[i]->triangle_count = 0;
                 node->children[i]->parent = node;
                 leafCount++;
+                emptyNodeCount++;
             }
         }
     }
@@ -287,7 +288,7 @@ void BVH_Bottomup_Collapser(BVH_Node *root)
     if(branching_factor != 4 && branching_factor != 8 ){ return; }
     if(root == NULL){ return; }
 
-    cerr << "~~~~IN BVH_Bottomup_Collapser" << endl;
+    // cerr << "~~~~IN BVH_Bottomup_Collapser" << endl;
 
     std::queue<BVH_Node*> q;
     std::stack<BVH_Node*> stack;
@@ -363,7 +364,7 @@ void BVH_Bottomup_Collapser(BVH_Node *root)
     inner_node_counter = 0;
     PostProcessBottomUp(root);
 
-    cerr << "~~~~DONE IN BVH_Bottomup_Collapser" << endl;
+    // cerr << "~~~~DONE IN BVH_Bottomup_Collapser" << endl;
 }
 
 

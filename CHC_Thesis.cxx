@@ -342,6 +342,9 @@ int main(int argc, char** argv)
     data_log << "AVG TRAVERSAL TIME PER PIXEL:  " << avg_time << endl;
     double avg_num_visits = std::accumulate(node_visit_data.begin(),node_visit_data.end(),0.0) / npixels;
     data_log << "AVG # NODES VISTED PER PIXEL:  " << avg_num_visits << endl;
+    if(construction_method == BOTTOMUP){
+        data_log << "AVG # CHILDREN PER INNER NODE: " << branching_factor - (emptyNodeCount/inner_node_counter) << endl;
+    }
 
     if( PRODUCE_IMAGE ) WriteImage(image, outFileName) ;
     data_log.close();
