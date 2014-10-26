@@ -189,6 +189,8 @@ int main(int argc, char** argv)
 
     // print_params();
 
+    EMPTY_NODE_BBOX = new BBox(*c->position * 1.1, *c->position * 1.1);
+
     vtkImageData *image;
     Screen* screen = new Screen;
     if (PRODUCE_IMAGE){
@@ -253,8 +255,10 @@ int main(int argc, char** argv)
         BuildBVH_topdown(tris, root, root->parent, numTriangles, 0); 
         // BuildBVH_topdown_OLD(tris, root, root->parent, numTriangles, 0); 
     }
-    // else if (construction_method == BOTTOMUP){   BuildBVH_bottomup(tris, &root, numTriangles); }
-    else if (construction_method == BOTTOMUP){   BuildBVH_bottomup(tris, &root, numTriangles); }
+    else if (construction_method == BOTTOMUP){   
+        BuildBVH_bottomup(tris, &root, numTriangles); 
+        if(branching_factor!=2){ BVH_Bottomup_Collapser(root); }
+    }
 
     data_log << "BUILD TIME  " << stopwatch->read() << endl;
 
