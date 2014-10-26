@@ -5,6 +5,7 @@
 
 #include "Camera.h"
 #include "Triangle.h"
+#include "BBox.h"
 
 #define TOPDOWN  (1)
 #define BOTTOMUP (2)
@@ -52,6 +53,7 @@ static int depthOfTrace = 0;             // Depth of Ray Tracing, number of refl
 
 LightingParameters* lp = new LightingParameters();
 Camera *c;
+static BBox *EMPTY_NODE_BBOX;
 Triangle* tris;
 static int numTriangles;
 static float* flat_array;
