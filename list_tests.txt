@@ -1,23 +1,21 @@
-./CHC_Thesis.app/Contents/MacOS/CHC_Thesis ./models/cube/cube.obj      2   td  -3 3  2         1   0.0  cube_TD_2
-./CHC_Thesis.app/Contents/MacOS/CHC_Thesis ./models/cube/cube.obj      4   td  -3 3  2         1   0.0  cube_TD_4
-./CHC_Thesis.app/Contents/MacOS/CHC_Thesis ./models/cube/cube.obj      8   td  -3 3  2         1   0.0  cube_TD_8
+#./CHC_Thesis.app/Contents/MacOS/CHC_Thesis ./models/cube/cube.obj      2   td  -3 3  2         1   0.0  cube_TD_2
+#./CHC_Thesis.app/Contents/MacOS/CHC_Thesis ./models/cube/cube.obj      4   td  -3 3  2         1   0.0  cube_TD_4
+#./CHC_Thesis.app/Contents/MacOS/CHC_Thesis ./models/cube/cube.obj      8   td  -3 3  2         1   0.0  cube_TD_8
 
-./CHC_Thesis.app/Contents/MacOS/CHC_Thesis ./models/cube/cube.obj      2   bu  -3 3  2         1   0.0  cube_BU_2
-./CHC_Thesis.app/Contents/MacOS/CHC_Thesis ./models/cube/cube.obj      4   bu  -3 3  2         1   0.0  cube_BU_4
-./CHC_Thesis.app/Contents/MacOS/CHC_Thesis ./models/cube/cube.obj      8   bu  -3 3  2         1   0.0  cube_BU_8
-
-#./CHC_Thesis.app/Contents/MacOS/CHC_Thesis ./models/cube/cube.obj      2   bu  -3 3  2         1   0.0  cube_BU
-
+#./CHC_Thesis.app/Contents/MacOS/CHC_Thesis ./models/cube/cube.obj      2   bu  -3 3  2         1   0.0  cube_BU_2
 #./CHC_Thesis.app/Contents/MacOS/CHC_Thesis ./models/cube/cube.obj      4   bu  -3 3  2         1   0.0  cube_BU_4
+#./CHC_Thesis.app/Contents/MacOS/CHC_Thesis ./models/cube/cube.obj      8   bu  -3 3  2         1   0.0  cube_BU_8
 
 
 
 
+./CHC_Thesis.app/Contents/MacOS/CHC_Thesis ./models/cup/cup.obj        2   td  -2 5  15        1   0.0  cup_TD_2
+./CHC_Thesis.app/Contents/MacOS/CHC_Thesis ./models/cup/cup.obj        4   td  -2 5  15        1   0.0  cup_TD_4
+./CHC_Thesis.app/Contents/MacOS/CHC_Thesis ./models/cup/cup.obj        8   td  -2 5  15        1   0.0  cup_TD_8
 
-#./CHC_Thesis.app/Contents/MacOS/CHC_Thesis ./models/cup/cup.obj        2   td  -2 5  15        1   0.0  cup_TD
-
-
-#./CHC_Thesis.app/Contents/MacOS/CHC_Thesis ./models/cup/cup.obj        2   bu  -2 5  15        1   0.0  cup_BU
+./CHC_Thesis.app/Contents/MacOS/CHC_Thesis ./models/cup/cup.obj        2   bu  -2 5  15        1   0.0  cup_BU_2
+./CHC_Thesis.app/Contents/MacOS/CHC_Thesis ./models/cup/cup.obj        4   bu  -2 5  15        1   0.0  cup_BU_4
+./CHC_Thesis.app/Contents/MacOS/CHC_Thesis ./models/cup/cup.obj        8   bu  -2 5  15        1   0.0  cup_BU_8
 
 
 
