@@ -9,36 +9,35 @@
 
 
 
-./CHC_Thesis.app/Contents/MacOS/CHC_Thesis ./models/cup/cup.obj        2   td  -2 5  15        1   0.0  cup_TD_2
-./CHC_Thesis.app/Contents/MacOS/CHC_Thesis ./models/cup/cup.obj        4   td  -2 5  15        1   0.0  cup_TD_4
-./CHC_Thesis.app/Contents/MacOS/CHC_Thesis ./models/cup/cup.obj        8   td  -2 5  15        1   0.0  cup_TD_8
+#./CHC_Thesis.app/Contents/MacOS/CHC_Thesis ./models/cup/cup.obj        2   td  -2 5  15        1   0.0  cup_TD_2
+#./CHC_Thesis.app/Contents/MacOS/CHC_Thesis ./models/cup/cup.obj        4   td  -2 5  15        1   0.0  cup_TD_4
+#./CHC_Thesis.app/Contents/MacOS/CHC_Thesis ./models/cup/cup.obj        8   td  -2 5  15        1   0.0  cup_TD_8
 
-./CHC_Thesis.app/Contents/MacOS/CHC_Thesis ./models/cup/cup.obj        2   bu  -2 5  15        1   0.0  cup_BU_2
-./CHC_Thesis.app/Contents/MacOS/CHC_Thesis ./models/cup/cup.obj        4   bu  -2 5  15        1   0.0  cup_BU_4
-./CHC_Thesis.app/Contents/MacOS/CHC_Thesis ./models/cup/cup.obj        8   bu  -2 5  15        1   0.0  cup_BU_8
-
-
-
-
-
-#./CHC_Thesis.app/Contents/MacOS/CHC_Thesis ./models/cup2/cup2.obj      2   td  -4 9  13.6      1   0.0  cup2_TD
-#./CHC_Thesis.app/Contents/MacOS/CHC_Thesis ./models/cup2/cup2.obj      4   td  -4 9  13.6      1   0.0  cup2_TD
-
-
-#./CHC_Thesis.app/Contents/MacOS/CHC_Thesis ./models/cup2/cup2.obj      2   bu  -4 9  13.6      1   0.0  cup2_BU
+#./CHC_Thesis.app/Contents/MacOS/CHC_Thesis ./models/cup/cup.obj        2   bu  -2 5  15        1   0.0  cup_BU_2
+#./CHC_Thesis.app/Contents/MacOS/CHC_Thesis ./models/cup/cup.obj        4   bu  -2 5  15        1   0.0  cup_BU_4
+#./CHC_Thesis.app/Contents/MacOS/CHC_Thesis ./models/cup/cup.obj        8   bu  -2 5  15        1   0.0  cup_BU_8
 
 
 
 
+./CHC_Thesis.app/Contents/MacOS/CHC_Thesis ./models/cup2/cup2.obj      2   td  -4 9  13.6      1   0.0  cup2_TD_2
+./CHC_Thesis.app/Contents/MacOS/CHC_Thesis ./models/cup2/cup2.obj      4   td  -4 9  13.6      1   0.0  cup2_TD_4
+./CHC_Thesis.app/Contents/MacOS/CHC_Thesis ./models/cup2/cup2.obj      8   td  -4 9  13.6      1   0.0  cup2_TD_8
 
-#./CHC_Thesis.app/Contents/MacOS/CHC_Thesis ./models/head/head.obj      2   td  0  0  1         1   0.0  head_TD__2
-#./CHC_Thesis.app/Contents/MacOS/CHC_Thesis ./models/head/head.obj      4   td  0  0  1         1   0.0  head_TD__4
+./CHC_Thesis.app/Contents/MacOS/CHC_Thesis ./models/cup2/cup2.obj      2   bu  -4 9  13.6      1   0.0  cup2_BU_2
+./CHC_Thesis.app/Contents/MacOS/CHC_Thesis ./models/cup2/cup2.obj      4   bu  -4 9  13.6      1   0.0  cup2_BU_4
+./CHC_Thesis.app/Contents/MacOS/CHC_Thesis ./models/cup2/cup2.obj      8   bu  -4 9  13.6      1   0.0  cup2_BU_8
+
+
+
+
+./CHC_Thesis.app/Contents/MacOS/CHC_Thesis ./models/head/head.obj      2   td  0  0  1         1   0.0  head_TD__2
+./CHC_Thesis.app/Contents/MacOS/CHC_Thesis ./models/head/head.obj      4   td  0  0  1         1   0.0  head_TD__4
 #./CHC_Thesis.app/Contents/MacOS/CHC_Thesis ./models/head/head.obj      8   td  0  0  1         1   0.0  head_TD__8
 
-
-#./CHC_Thesis.app/Contents/MacOS/CHC_Thesis ./models/head/head.obj      2   bu  0  0  1         1   0.0  head_BU__2
-#./CHC_Thesis.app/Contents/MacOS/CHC_Thesis ./models/head/head.obj      4   bu  0  0  1         1   0.0  head_BU__4
-#./CHC_Thesis.app/Contents/MacOS/CHC_Thesis ./models/head/head.obj      8   bu  0  0  1         1   0.0  head_BU__8
+./CHC_Thesis.app/Contents/MacOS/CHC_Thesis ./models/head/head.obj      2   bu  0  0  1         1   0.0  head_BU__2
+./CHC_Thesis.app/Contents/MacOS/CHC_Thesis ./models/head/head.obj      4   bu  0  0  1         1   0.0  head_BU__4
+./CHC_Thesis.app/Contents/MacOS/CHC_Thesis ./models/head/head.obj      8   bu  0  0  1         1   0.0  head_BU__8
 
 
 
