@@ -175,6 +175,7 @@ void BuildBVH_topdown(Triangle* triangles, BVH_Node *current, BVH_Node *parent,
                             int count, int depth)
 {
     // cerr << "\ndepth " << depth << endl;
+    // if(depth % 10 == 0){ cerr << "count in topdown: " << count << endl; }
 
     current->parent = parent;
     current->triangle_count = count;
