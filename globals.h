@@ -24,8 +24,8 @@ struct LightingParameters
         lightDir.z = -z / sqrt(x*x+y*y+z*z);
         Ka = 0.3;
         Kd = 0.7;
-        Ks = 5.2;
-        gamma = 5.7;
+        Ks = 4.2;
+        gamma = 7.7;
     };
     
     
