@@ -131,6 +131,8 @@ void BuildBVH_bottomup(Triangle* triangles, BVH_Node **root, int count)
         InputNodes[t] = *node;
     }
 
+    cerr << "done making nodes" << endl;
+
     /* GET ANY NODE */
     set = kd_nearest3f(kd, 0, 0, 0);
     BVH_Node *A =  kd_res_item_data(set);
@@ -138,7 +140,7 @@ void BuildBVH_bottomup(Triangle* triangles, BVH_Node **root, int count)
 
     while(kd_size > 1){
         // cerr << "-------------------------------------\n------------------------------------- " << endl;
-        // cerr << "\nkd size = " << kd_size << endl;
+        // if(kd_size % 5000 == 0){ cerr << "kd_size in bottom up: " << kd_size << endl; }
 
         BVH_Node *C = kd_find_best_match_with_sq(kd, B, &dist_sq_BC);
 
