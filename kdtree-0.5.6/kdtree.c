@@ -293,13 +293,20 @@ BVH_Node* kd_find_best_match(struct kdtree *tree, BVH_Node *A)
 BVH_Node* kd_find_best_match_with_sq(struct kdtree *tree, BVH_Node *A, double *dist_sq)
 {
     struct kdres *set;
-    set = kd_nearest_range3f(tree, A->bbox.center.x, A->bbox.center.y, A->bbox.center.z, 5.0);
+    float search_rad = 10.0; // 10.0 is arbitrary
+    set = kd_nearest_range3f(tree, A->bbox.center.x, A->bbox.center.y, A->bbox.center.z, search_rad);
     BVH_Node *C = kd_res_item_data_with_sq(set, dist_sq);
     // cerr << "     A->id " << A->id << ", C->id " << C->id << endl;
     while(A->id == C->id){
         if(kd_res_next(set)){
             C = kd_res_item_data_with_sq(set, dist_sq);
-        }else{cerr << "well crapo. kdtree.c ~line 300" << endl;}
+		    // cerr << "    NOW: A->id " << A->id << ", C->id " << C->id << endl;
+        }else{
+        	search_rad *= 2;
+		    set = kd_nearest_range3f(tree, A->bbox.center.x, A->bbox.center.y, A->bbox.center.z, search_rad);
+        	// cerr << "well crapo. kdtree.c ~line 300" << endl;
+        	cerr << "kd_find_best_match expanding search radius. kdtree.c ~line 300" << endl;
+        }
     }
     // cerr << "     A->id=" << A->id << " will be paired with C->id=" << C->id << endl;
     kd_res_free(set);
