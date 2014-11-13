@@ -11,15 +11,14 @@
 bool traverseFlatArray(float* flat_array, int idx, Ray* ray, Vec3f* color, int traceDepthToGo, int* node_counter);
 
 
-Vec3f* Illumination(Ray* reflected, int traceDepthToGo)
+Vec3f* Illumination(Ray* reflected, int traceDepthToGo, int* node_counter)
 {
     float nearest_t = std::numeric_limits<float>::infinity();
     Vec3f* color = new Vec3f();
     
     // See if any objects obscure the light
-    int unused;
     
-    traverseFlatArray(flat_array, 0, reflected, color, traceDepthToGo-1, &unused);
+    traverseFlatArray(flat_array, 0, reflected, color, traceDepthToGo-1, node_counter);
 
     return color;
     
@@ -81,7 +80,7 @@ float CalculateShading(LightingParameters* lp, Vec3f viewDirection, Ray* normalR
 
 /* triangleData = [Tri ID, data] */
 void
-getColor(Vec3f* color, float* triangleData, Ray* viewDir, int traceDepthToGo)
+getColor(Vec3f* color, float* triangleData, Ray* viewDir, int traceDepthToGo, int* node_counter)
 {
     /* COLOR CUBE */
         // if((int)triangleData[0]%12 == 0){ color->x = 255; color->y = 000; color->z = 000; } // RED
@@ -98,8 +97,8 @@ getColor(Vec3f* color, float* triangleData, Ray* viewDir, int traceDepthToGo)
         // if((int)triangleData[0]%12 ==11){ color->x = 255; color->y = 000; color->z = 127; } // PINK
 
     /* COLOR BY DISTANCE */
-    int nearPlane = 0;
-    int farPlane = 2;
+    int nearPlane = 16;
+    int farPlane = 50;
 
     double dist_ratio = (triangleData[1]-nearPlane)/(double)(farPlane-nearPlane);
     int color_ratio = dist_ratio > 1 ? 255 : dist_ratio*255;
@@ -123,14 +122,15 @@ getColor(Vec3f* color, float* triangleData, Ray* viewDir, int traceDepthToGo)
 
     // --- FIND REFLECTIONS -------
     Ray* reflected = findReflection(normAtIntersect, viewDir);
-    Vec3f* ill = Illumination(reflected, traceDepthToGo);
+    Vec3f* ill = Illumination(reflected, traceDepthToGo, node_counter);
     // cerr << "ill is " << *ill << endl;
 
     // --- FIND COLORS SEEN VIA OPACITY -------
     Ray* rayThruIntersection = new Ray(pointOfIntersection, viewDir->unitDir);
     Vec3f* opColor = new Vec3f();
-    int unused;
-    traverseFlatArray(flat_array, 0, rayThruIntersection, opColor, traceDepthToGo, &unused);
+    if(opacity>0){
+        traverseFlatArray(flat_array, 0, rayThruIntersection, opColor, traceDepthToGo, node_counter);
+    }
     // cerr << "opColor " << *opColor << endl;
 
 
@@ -140,9 +140,11 @@ getColor(Vec3f* color, float* triangleData, Ray* viewDir, int traceDepthToGo)
     color->z = (unsigned char) ceil441( std::min(255.0, color->z*PhShade));
                 
     // --- APPLY OPACITY ----------
-    color->x = (unsigned char) ceil441( std::min(255.0, color->x*(1-opacity) + opColor->x*opacity));
-    color->y = (unsigned char) ceil441( std::min(255.0, color->y*(1-opacity) + opColor->y*opacity));
-    color->z = (unsigned char) ceil441( std::min(255.0, color->z*(1-opacity) + opColor->z*opacity));
+    if(opacity>0){
+        color->x = (unsigned char) ceil441( std::min(255.0, color->x*(1-opacity) + opColor->x*opacity));
+        color->y = (unsigned char) ceil441( std::min(255.0, color->y*(1-opacity) + opColor->y*opacity));
+        color->z = (unsigned char) ceil441( std::min(255.0, color->z*(1-opacity) + opColor->z*opacity));
+    }
 
     // --- APPLY REFLECTIONS ------
     color->x = (unsigned char) ceil441( std::min(255.0, color->x + GLOBAL_REFLECT_COEF * ill->x));
@@ -195,7 +197,7 @@ traverseFlatArray(float* flat_array, int idx, Ray* ray, Vec3f* color, int traceD
 
         // Calc color specs for closest intersected Triangle
         if(closest[0] >= 0){
-            getColor(color, closest, ray, traceDepthToGo);
+            getColor(color, closest, ray, traceDepthToGo, node_counter);
             return true;
 
         }else{ return false; }
