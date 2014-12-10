@@ -101,10 +101,6 @@ class Triangle{
 
 		bool intersect(const Ray &r, float* isectData) const
 		{
-			// cerr << "here in intersect. Ray is " << r;
-			// cerr << "this triangle is " << endl;
-			// print();
-
 		    Vec3f edge1 = v1() - v0();
 		    Vec3f edge2 = v2() - v0();
 		    // cerr << "edge1 " << edge1 << "   edge2 " << edge2 << endl;
@@ -113,7 +109,6 @@ class Triangle{
 			float det = dotProduct(edge1, *pvec);
 
 			/* NON-CULLING */
-			// cerr << "now here .... det = " << det << endl;
 
 		    /* if determinant is near zero ray lies in plane of triangle */
 		    if (det < 0.000001 && det > -0.000001) return false;
@@ -122,18 +117,12 @@ class Triangle{
 		    Vec3f tvec = r.source - v0(); /* Distance from v0 to ray origin */
 		    float u = dotProduct(tvec, *pvec) * invDet;
 
-			// cerr << "and here .... u =" << u << endl;
-
 		    if (u < 0.0 || u > 1.0) return false;
-
-			// cerr << "and here" << endl;
 
 			Vec3f* qvec = crossProduct(tvec, edge1);
 		    float v = dotProduct(r.unitDir, *qvec) * invDet;
 		    if (v < 0.0 || u + v > 1.0) return false;
 		    float t = dotProduct(edge2, *qvec) * invDet;
-
-		    // cerr << "Triangle intersect got t = " << t << endl;
 
 		    if(t > 0.000001){
 		    	*isectData = t;
@@ -196,43 +185,12 @@ void CreateTriangleArray(Triangle *triangles, int numTriangles, float *verts, fl
 	    triangles[triIndex].yNorms[2] = norms[triIndex*9+7];
 	    triangles[triIndex].zNorms[2] = norms[triIndex*9+8];
 
-	    // Ray v1Norm = Ray(Vec3f(triangles[triIndex].c[0], triangles[triIndex].c[1], triangles[triIndex].c[2]),
-	    // 				 Vec3f(triangles[triIndex].xNorms[0], triangles[triIndex].yNorms[0], triangles[triIndex].zNorms[0]));
-
 	    // Norm direction is being determined by only vertex
 	    triangles[triIndex].normal = new Ray(Vec3f(triangles[triIndex].c[0], triangles[triIndex].c[1], triangles[triIndex].c[2]),
 	    									 Vec3f(triangles[triIndex].xNorms[0], triangles[triIndex].yNorms[0], triangles[triIndex].zNorms[0]));
 
 	}
 }
-
-
-// void
-// CreateTriangleList(list<Triangle> *triangles, int numTriangles, float *xVerts, float *yVerts, float *zVerts)
-// {
-// 	for(int triIndex = 0; triIndex < numTriangles; triIndex++){
-// 		Triangle t;
-		
-// 	    t.X[0] = xVerts[triIndex*9];
-// 	    t.Y[0] = xVerts[triIndex*9+1];
-// 	    t.Z[0] = xVerts[triIndex*9+2];
-	    
-// 	    t.X[1] = xVerts[triIndex*9+3];
-// 	    t.Y[1] = xVerts[triIndex*9+4];
-// 	    t.Z[1] = xVerts[triIndex*9+5];
-	    
-// 	    t.X[2] = xVerts[triIndex*9+6];
-// 	    t.Y[2] = xVerts[triIndex*9+7];
-// 	    t.Z[2] = xVerts[triIndex*9+8];
-// 	    t.calcCentroid();
-// 	    t.setBbox();
-		
-// 		t.id=triIndex;
-		
-// 		triangles->push_back(t);
-// 	}
-// }
-
 
 bool compCenterX(const Triangle & a, const Triangle & b){
 	return a.c[0] < b.c[0];

@@ -17,7 +17,6 @@ Vec3f* Illumination(Ray* reflected, int traceDepthToGo, int* node_counter)
     Vec3f* color = new Vec3f();
     
     // See if any objects obscure the light
-    
     traverseFlatArray(flat_array, 0, reflected, color, traceDepthToGo-1, node_counter);
 
     return color;
@@ -82,21 +81,7 @@ float CalculateShading(LightingParameters* lp, Vec3f viewDirection, Ray* normalR
 void
 getColor(Vec3f* color, float* triangleData, Ray* viewDir, int traceDepthToGo, int* node_counter)
 {
-    /* COLOR CUBE */
-        // if((int)triangleData[0]%12 == 0){ color->x = 255; color->y = 000; color->z = 000; } // RED
-        // if((int)triangleData[0]%12 == 1){ color->x = 255; color->y = 128; color->z = 000; } // ORANGE
-        // if((int)triangleData[0]%12 == 2){ color->x = 255; color->y = 255; color->z = 000; } // YELLOW
-        // if((int)triangleData[0]%12 == 3){ color->x = 000; color->y = 128; color->z = 255; } // SKY BLUE
-        // if((int)triangleData[0]%12 == 4){ color->x = 000; color->y = 255; color->z = 000; } // GREEN
-        // if((int)triangleData[0]%12 == 5){ color->x = 000; color->y = 153; color->z = 076; } // DEEP SEA FOAM
-        // if((int)triangleData[0]%12 == 6){ color->x = 000; color->y = 255; color->z = 255; } // TEAL
-        // if((int)triangleData[0]%12 == 7){ color->x = 204; color->y = 255; color->z = 153; } // FADED LIME GREEN
-        // if((int)triangleData[0]%12 == 8){ color->x = 000; color->y = 000; color->z = 255; } // BLUE
-        // if((int)triangleData[0]%12 == 9){ color->x = 127; color->y = 000; color->z = 255; } // PURPLE
-        // if((int)triangleData[0]%12 ==10){ color->x = 255; color->y = 153; color->z = 255; } // BRIGHT MAGENTA
-        // if((int)triangleData[0]%12 ==11){ color->x = 255; color->y = 000; color->z = 127; } // PINK
-
-    /* COLOR BY DISTANCE */
+    /* COLOR BY DISTANCE FROM VIEW POINT */
     int nearPlane = 16;
     int farPlane = 50;
 
@@ -106,7 +91,6 @@ getColor(Vec3f* color, float* triangleData, Ray* viewDir, int traceDepthToGo, in
     color->x = 255;
     color->y = color_ratio;
     color->z = color_ratio;
-
 
     /* Get Triangle with the appropriate id */
     Triangle curTri;
@@ -131,8 +115,6 @@ getColor(Vec3f* color, float* triangleData, Ray* viewDir, int traceDepthToGo, in
     if(opacity>0){
         traverseFlatArray(flat_array, 0, rayThruIntersection, opColor, traceDepthToGo, node_counter);
     }
-    // cerr << "opColor " << *opColor << endl;
-
 
     // --- APPLY SHADING ----------
     color->x = (unsigned char) ceil441( std::min(255.0, color->x*PhShade));
@@ -162,32 +144,28 @@ traverseFlatArray(float* flat_array, int idx, Ray* ray, Vec3f* color, int traceD
 {
     if (traceDepthToGo <= 0){ return false; } /* ALL DONE */
 
-    // cerr << "\nBox at " << idx << endl;
-    // cerr << "flat_array[idx] = " << flat_array[idx] << endl;
-
     *node_counter += 1; /* USED TO COUNT NUMBER OF NODE VISITS */
 
-    // LEAF NODE
+    /* ---- LEAF NODE ---- */
     if (flat_array[idx] == LEAF_FLAG){
-        // cerr << "LEAF NODE\n" << endl;
         idx++; //increment here, after 'if' statement comparison in case of a FALSE
+
         float closest[2] = {-1,std::numeric_limits<float>::infinity()};//[Tri ID, data]
         int triangle_count = flat_array[idx++];
+
         // Intersect Triangles
         for(int i=0; i<triangle_count; i++){
-            int cur_idx = idx+i;
-            // cerr << "looking at triangle, id = " << flat_array[cur_idx] << endl;
             float data = std::numeric_limits<float>::infinity();
+            int cur_idx = idx+i;
 
             /* Get Triangle with the appropriate id */
             Triangle curTri;
             GetTriangleFromID(tris, numTriangles, flat_array[cur_idx], &curTri);
 
             bool hit = curTri.intersect(*ray, &data);
-            // cerr << "data is " << data << endl;
             if(hit){
                 if(data < closest[1]){
-                    // cerr << "it's less, replace closest" << endl;
+                    /* NEW INTERSECTION IS CLOSER */
                     closest[0] = flat_array[cur_idx];
                     closest[1] = data;
                 }
@@ -202,15 +180,15 @@ traverseFlatArray(float* flat_array, int idx, Ray* ray, Vec3f* color, int traceD
 
         }else{ return false; }
     }
-    // INNER NODE
+
+    /* ---- INNER NODE ---- */
     else{
-        // cerr << "INNER NODE" << endl;
         int num_hits = 0;
 
         std::vector<float> mins (branching_factor, 0);// idx == which BBox, val == tnear of BBox (if intersect else 0)
         std::vector<float> maxs (branching_factor, 0);// idx == which BBox, val == tfar of BBox (if intersect else 0)
 
-        // Intersect bounding boxes
+        /* FIND Bbox INTERSECTIONS */
         for(int i=0; i<branching_factor; i++){
             float min_x = flat_array[idx++];
             float min_y = flat_array[idx++];
@@ -224,46 +202,39 @@ traverseFlatArray(float* flat_array, int idx, Ray* ray, Vec3f* color, int traceD
             Vec3f max = Vec3f(max_x, max_y, max_z);
             BBox* box = new BBox(min, max);
 
-            // cerr << "bbox " << i << endl;
-            // cerr << "MIN: " << min << endl;
-            // cerr << "MAX: " << max << endl;
-
             // Intersect Bounding Box
             float tnear;
             float tfar;
-            // bool bb = box->intersect(*ray, &tnear, &tfar);
+            
             bool bb = box->intersect(ray->unitDir, ray->source, ray->invDir, ray->sign, &tnear, &tfar);
             if ( bb ){
                 // cerr << "intersection! " << tnear << endl;
                 num_hits++;
                 mins[i] = tnear;
                 maxs[i] = tfar;
-                // cerr << "~~intsection, mins["<<i<<"] got " << mins[i] << ", maxs["<<i<<"] got " << maxs[i] << endl;
             }
             delete box;
         }
-        // cerr << "idx is: " << idx << endl;
+        
+        /* IF NO BBox INTERSECTION, THEN DONE. */
+        if(num_hits == 0){ return false; }
 
-        if(num_hits == 0){ return false; } /* No BBox intersection */
-
-        // Traverse closest intersected Bounding Box
+        /* TRAVERSE CLOSEST INTERSECTED BBox */
         while(1){
-            // cerr << "another iteration of while" << endl;
             int least_box = -1;
 
             for(int i=0; i<branching_factor; i++){
                 if( mins[i] != 0){
                     if(least_box == -1 || mins[i] < mins[least_box] ){
                         least_box=i;
-                        // cerr << "New least box " << least_box << endl;
                     }
                 }
             }
 
             if( least_box == -1){ return false; } /* No BBox intersection, I think this is redundant */
 
+            /* IF MULTIPLE HITS ... */
             if(num_hits > 1){
-                // cerr << "mult hits" << endl;
                 int dups[MAX_BRANCHING_FACTOR] = {-1};
                 int guilty_index = -1;
 
@@ -279,22 +250,19 @@ traverseFlatArray(float* flat_array, int idx, Ray* ray, Vec3f* color, int traceD
                 }
             }
 
-            // cerr << "least_box = " << least_box << endl;
-
             int idx_next_box = idx+least_box;
 
             // cerr << "idx indicating next_box = " << idx_next_box << endl;
             // cerr << "will go to box next: " << flat_array[idx_next_box] << endl;
 
+            /* IF THERE IS AN INTERSECTION IN BVH... */
             if (traverseFlatArray(flat_array, flat_array[idx_next_box], ray, color, traceDepthToGo, node_counter)){ 
-                // cerr << "returning true"<< endl;
                 return true;
             }
-            else{ 
-                // cerr << "in the else..."<<endl;
+            /* ELSE, TRY THE NEXT POSSIBLITY (KEEP LOOPING TIL WE GET THE INTERSECTION) */
+            else{
                 mins[least_box] = 0;
                 num_hits--;
-                // cerr << "num_hits is now " << num_hits << endl;
             }
         }
         cerr << "shouldn't have gotten here...." << endl;

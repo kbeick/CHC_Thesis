@@ -104,20 +104,6 @@ Vec3f::operator*=(double a)
     y *= a;
     z *= a;
 }
-// Vec3f
-// Vec3f::crossProduct(const Vec3f &r) const
-// {
-//     Vec3f v;
-//     v.x = y*r.z - z*r.y;
-//     v.y = z*r.x - x*r.z;
-//     v.z = x*r.y - y*r.x;
-//     return v;
-// }
-// float
-// Vec3f::dotProduct(const Vec3f &r) const
-// {
-//     return x*r.x + y*r.y + z*r.z;
-// }
 
 
 double ceil441(double f)

@@ -43,19 +43,25 @@ std::string USAGE_MSG = "USAGE: ./CHC_Thesis.app <model filename> <children per 
 static bool PRODUCE_IMAGE = true;
 static int IMAGE_WIDTH =  300;
 static int IMAGE_HEIGHT = 300;
-static double GLOBAL_REFLECT_COEF = 0.4;        /* Global Reflectivity */
+static double GLOBAL_REFLECT_COEF = 0.4;    /* Global Reflectivity */
 
-static int branching_factor;               // Children per Node
-static int construction_method = 0;        // TOPDOWN==1 ; BOTTOMUP==2
-static double opacity = 0.0;               // Global Opacity
-static int depthOfTrace = 0;             // Depth of Ray Tracing, number of reflections accounted for
-// static double reflec = 0.0;             // Global Reflectivity
+static int branching_factor;                // Children per Node
+static int construction_method = 0;         // TOPDOWN==1 ; BOTTOMUP==2
+static double opacity = 0.0;                // Global Opacity
+static int depthOfTrace = 0;                // Depth of Ray Tracing, number of reflections accounted for
 
+/* COMMAND LINE-DEFINED PARAMETERS FOR BVH */
+ObjReader* objReader;                       // Object Reader for file
+Vec3f campos;                               // Camera Position
+
+/* GLOBAL VARIABLES */
 LightingParameters* lp = new LightingParameters();
 Camera *c;
-static BBox *EMPTY_NODE_BBOX;
 Triangle* tris;
 static int numTriangles;
 static float* flat_array;
+
+/* AUXILIARY HELPER */
+static BBox *EMPTY_NODE_BBOX;
 
 #endif

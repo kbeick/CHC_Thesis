@@ -4,6 +4,8 @@
 /*  Main.cxx
     - Run command line interface
     - Set parameters
+    - Construct BVH
+    - Ray Tracing
     - streams evaluation data
     - produce image file
 */
@@ -49,24 +51,11 @@ using std::cerr;
 using std::cout;
 using std::endl;
 
-/* COMMAND LINE-DEFINED PARAMETERS FOR BVH */
-ObjReader* objReader;               // Object Reader for file
-Vec3f campos;                       // Camera Position
 
-/* HELPERS */
 
-class Screen
-{
-public:
-    unsigned char *buffer;
-    double *depthBuffer;
-    int width, height;
-    
-    // return the element number of buffer corresponding to pixel at (c,r)
-    int pixel(int c, int r){
-        return 3*( (IMAGE_WIDTH*r)+c );
-    }
-};
+/* ----------------------------------------------------------------------------- */
+/* ---------- PARAMETERIZATION ---------- */
+/* ----------------------------------------------------------------------------- */
 
 void
 print_params()
@@ -101,6 +90,23 @@ SetUpCamera()
     return c;
 }
 
+/* ----------------------------------------------------------------------------- */
+/* ---------- IMAGE PRODUCTION ---------- */
+/* ----------------------------------------------------------------------------- */
+
+class Screen
+{
+public:
+    unsigned char *buffer;
+    double *depthBuffer;
+    int width, height;
+    
+    // return the element number of buffer corresponding to pixel at (c,r)
+    int pixel(int c, int r){
+        return 3*( (IMAGE_WIDTH*r)+c );
+    }
+};
+
 vtkImageData *
 NewImage(int width, int height)
 {
@@ -127,26 +133,27 @@ WriteImage(vtkImageData *img, const char *filename)
     writer->Delete();
 }
 
+/* ----------------------------------------------------------------------------- */
+/* ---------- MAIN ---------- */
+/* ----------------------------------------------------------------------------- */
+
 int main(int argc, char** argv)
 {
     Stopwatch* stopwatch = new Stopwatch();
 
+    /* PREFATORY DATA LOG STUFF */
     ofstream data_log;
-    data_log.open("log_data_output.txt", ios_base::app);
+    data_log.open("log_data_output_-_3.txt", ios_base::app);
     data_log << "___________________________________\n";
     data_log << "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n";
 
     /* SET UP CAMERA */
     c = SetUpCamera();
 
-    // HANDLE AND SET PARAMETERS
+    /* HANDLE AND SET PARAMETERS */
     if (argc != 9 && argc != 10){ cerr << USAGE_MSG; exit(0);}
     cerr << "PROCESSING " << argv[1] << endl;
     try{
-        // int cm = SetConstructionMethod(argv[3]);
-
-        // static const globals Globals(atoi( argv[2] ), cm, atof(argv[8]), atof(argv[7]));
-
         objReader = new ObjReader(argv[1]);
         branching_factor = atoi( argv[2] );
         construction_method = SetConstructionMethod(argv[3]);
@@ -154,26 +161,12 @@ int main(int argc, char** argv)
         depthOfTrace = atof(argv[7]);
         opacity = atof(argv[8]);
 
-
-        // objReader = new ObjReader(argv[1]);
-        // // branching_factor = atoi( argv[2] );
-        // globals.branching_factor = atoi( argv[2] ); 
-        // globals.constr_mthd = SetConstructionMethod(argv[3]);
-        // c->position = new Vec3f(atof(argv[4]),atof(argv[5]),atof(argv[6]));
-        // // depthOfTrace = atof(argv[7]);
-        // globals.depthOfTrace = atof(argv[7]));
-        // // opacity = atof(argv[8]);
-        // globals.opacity = atof(argv[8]);
-
-
     }catch (const std::exception &exc){
         // catch anything thrown within try block that derives from std::exception
         std::cerr << exc.what();
         cerr << USAGE_MSG; 
         exit(0);
     }
-
-    // cerr << "HERE NOW" << endl;
 
     data_log << "File: " << argv[1] <<
         "  Branching Factor: " << branching_factor <<
@@ -186,8 +179,6 @@ int main(int argc, char** argv)
     char *outFileName;
     if(argv[9]){ outFileName = argv[9]; }
     else{ outFileName = (char*)"myOutput"; }
-
-    // print_params();
 
     EMPTY_NODE_BBOX = new BBox(*c->position * 1.1, *c->position * 1.1);
 
@@ -208,6 +199,7 @@ int main(int argc, char** argv)
         screen->height = IMAGE_HEIGHT;
     }
 
+    /* GET RAW DATA FROM objReader */
     objReader->extractNormals();
 
     numTriangles = objReader->totalTriangles;
@@ -215,45 +207,21 @@ int main(int argc, char** argv)
 
     float* verts;
     float* normals;
-
-    // GET RAW DATA FROM objReader
     objReader->getRawData(verts, normals);
-
     tris = new Triangle[numTriangles];
     CreateTriangleArray(tris, numTriangles, verts, normals);
 
-    // for(int triIndex = 0; triIndex < numTriangles; triIndex++){
-    //     cerr << "Triangle " << triIndex << ":\n" << tris[triIndex].bbox.count ;
-    // }
-
-    // for(int i=0; i<numTriangles*9; i++){
-    //     if(i%9 == 0){cerr << "~~~~~~\n";}
-    //     cerr << normals[i] << endl;
-    // }
-
-    cerr << "HEHEHHEHE\n";
-
-    // for(int i=0; i<numTriangles; i++){
-    //     cerr << "~~~~~~\n";
-    //     for(int h=0; h<3; h++){
-    //         cerr << tris[i].xNorms[h] << endl;
-    //         cerr << tris[i].yNorms[h] << endl;
-    //         cerr << tris[i].zNorms[h] << endl;
-    //     }
-    // }
-
-    // INITIALIZE BVH
+    /* INITIALIZE BVH */
     BVH_Node *root = new BVH_Node();
     root->id = 0;
     root->parent = NULL;
 
-    // START TIMER
+    /* START TIMER */
     stopwatch->reset();
 
-    // Call Specified BVH Constructor
+    /* CALL SPECIFIED BVH CONSTRUCTOR */
     if (construction_method == TOPDOWN){         
-        BuildBVH_topdown(tris, root, root->parent, numTriangles, 0); 
-        // BuildBVH_topdown_OLD(tris, root, root->parent, numTriangles, 0); 
+        BuildBVH_topdown(tris, root, root->parent, numTriangles, 0);
     }
     else if (construction_method == BOTTOMUP){   
         BuildBVH_bottomup(tris, &root, numTriangles); 
@@ -261,39 +229,31 @@ int main(int argc, char** argv)
     }
 
     data_log << "BUILD TIME  " << stopwatch->read() << endl;
-
-    cerr << "\nFINISHED BUILDING TREE " << (construction_method == TOPDOWN ? "top down" : "bottom up" ) << endl;
-    // printBVH(root, 0);
-    // printBVH_depth(root, 0);
+    //cerr << "\nFINISHED BUILDING TREE " << (construction_method == TOPDOWN ? "top down" : "bottom up" ) << endl;
     
+    /* GENERATE FLAT ARRAY REP OF BVH */
     int flat_array_len;
     flat_array = bvhToFlatArray(root, &flat_array_len, branching_factor);
-
     // cerr << "flat_array_len " << flat_array_len << endl;
 
+    /* PRINT FLAT ARRAY TO COMMAND LINE */
     // for(int a=0; a<flat_array_len; a++){
-    //     if(flat_array[a]==LEAF_FLAG){
-    //         cerr << "idx " << a << ": ";
-    //     }
+    //     if(flat_array[a]==LEAF_FLAG){ cerr << "idx " << a << ": "; }
     //     cerr << flat_array[a] << endl;
     // }
 
+    
+    /* ----------------------------------------------------------------------------- */
+    /* ---------- DO RAY TRACING ---------- */
+    /* ----------------------------------------------------------------------------- */
     printf("\n~~~~~~ RAY TRACING ~~~~~~\n");
-
-    // ------------------------------- DO RAY TRACING ------------------------------
-    // -----------------------------------------------------------------------------
     
     int npixels = IMAGE_WIDTH*IMAGE_HEIGHT;
     double traversal_times[npixels];
     std::vector<int> node_visit_data (npixels, 0);
 
-    // cerr << "cam pos: " << *c->position << endl;
-    // cerr << "cam foc: " << *c->focus << endl;
-
     /* PREP WORK */
     Ray* look = RayFromPoints(*c->position, *c->focus);
-    // cerr << "~~~RAY 'LOOK': " << endl << *look;
-    // cerr << "~~~" << endl;
 
     Vec3f* u = crossProductNormalized(look->unitDir, *c->up);
     Vec3f* v = crossProductNormalized(look->unitDir, *u);
@@ -301,7 +261,7 @@ int main(int argc, char** argv)
     Vec3f x = (*u) * (2*tan((c->angle)/2)/IMAGE_WIDTH);
     Vec3f y = (*v) * (2*tan((c->angle)/2)/IMAGE_HEIGHT);
 
-    // For each pixel
+    /* FOR EACH PIXEL... */
     for (int h = 0; h < IMAGE_HEIGHT; h++) {
         for (int w = 0; w < IMAGE_WIDTH; w++) {
             int pixel = screen->pixel(w,h);
@@ -309,24 +269,21 @@ int main(int argc, char** argv)
             Vec3f x_comp = x*((2*w+1-IMAGE_WIDTH)/2);
             Vec3f y_comp = y*((2*h+1-IMAGE_HEIGHT)/2);
 
-            // ----CALCULATE THE RAY FROM CAMERA TO PIXEL-----
+            /* ---- CALCULATE THE RAY FROM CAMERA TO PIXEL ---- */
             Vec3f rayVector = look->unitDir + x_comp + y_comp;
             Ray* curRay = new Ray(*c->position, rayVector);
             // cerr << "\n\npixel " << w << "," << h << " :: ";
-            // cerr << "curRay: " << *curRay << endl;
 
-            // ----TRAVERSE THE BVH
+            /* ---- TRAVERSE THE BVH ---- */
             Vec3f* color = new Vec3f(0,0,0);    /* Pixel Color */
             stopwatch->reset();                 /* Start Timer */
 
-            bool b = traverseFlatArray(flat_array, 0, curRay, color, depthOfTrace, &node_visit_data[pixel/3]);
+            traverseFlatArray(flat_array, 0, curRay, color, depthOfTrace, &node_visit_data[pixel/3]);
             
-            traversal_times[w*IMAGE_HEIGHT + h] = stopwatch->read(); /* Record Traversal Time */
+            /* Record Traversal Time */
+            traversal_times[w*IMAGE_HEIGHT + h] = stopwatch->read();
 
             // cerr << "traversal complete" <<endl;
-            // data_log << "PIXEL " << pixel/3 << endl;
-            // data_log << "TRAVERSAL TIME  " << traversal_times[w*IMAGE_HEIGHT + h] << endl;
-            // data_log << "Number Nodes visited " << node_visit_data[pixel/3] <<  endl;
             
             if(PRODUCE_IMAGE){
                 // Assign colors to pixel
@@ -338,6 +295,7 @@ int main(int argc, char** argv)
             delete curRay;
         }
     }
+    /* LOG EVAL METRICS TO DATA FILE */
     double avg_time = std::accumulate(traversal_times,traversal_times+npixels,0.0) / npixels;
     data_log << "AVG TRAVERSAL TIME PER PIXEL:  " << avg_time << endl;
     double avg_num_visits = std::accumulate(node_visit_data.begin(),node_visit_data.end(),0.0) / npixels;
