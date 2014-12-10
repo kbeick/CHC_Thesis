@@ -8,8 +8,6 @@
 #include "utils.h"
 
 
-
-
 class Ray
 {
 public:
@@ -29,16 +27,13 @@ public:
 
 Ray::Ray( Vec3f start, Vec3f dir )
 { 
-
-    // cerr << "in Ray constructor, start is " << start << " while dir is " << dir << endl;
-    
     this->source.x = start.x;
     this->source.y = start.y;
     this->source.z = start.z;
 
 
     double norm = sqrt( pow(dir.x, 2.) + pow(dir.y, 2.) + pow(dir.z, 2.) );
-    // cerr << "norm is " << norm << endl;
+
     this->unitDir.x = dir.x/norm;
     this->unitDir.y = dir.y/norm;
     this->unitDir.z = dir.z/norm;
@@ -77,25 +72,9 @@ ostream& operator<<(ostream& out, const Ray& x )
     out << "unitDir is  " << x.unitDir << endl;
     out << "invDir is  " << x.invDir << endl;
     out << "sign is  " << x.sign[0] << ", " << x.sign[1] << ", " << x.sign[2] << endl;
-    // out << "maxY is  " << x.bbox.max.y << endl;
-    // out << "minZ is  " << x.bbox.min.z << endl;
-    // out << "maxZ is  " << x.bbox.max.z << endl;
     
     return out;
 }
-
-
-// Ray
-// operator+(const Ray ray, const Vec3f &r) const
-// {
-//     Vec3f newHead = Vec3f(ray->source.x+ray->unitDir.x, ray->source.y+ray->unitDir.y, ray->source.z+ray->unitDir.z);
-
-//     Ray result = ray;
-//     Ray result = Ray(ray->source, )
-
-
-//     return Vec3f(x-r.x, y-r.y, z-r.z);
-// }
 
 
 #endif
