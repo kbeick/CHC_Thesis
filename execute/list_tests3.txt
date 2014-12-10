@@ -1,0 +1,50 @@
+
+#./CHC_Thesis.app/Contents/MacOS/CHC_Thesis ./models/scene_tiny/scene_tiny.obj    2   td  22 22 32         1   0.0  scene_tiny_TD__2
+#./CHC_Thesis.app/Contents/MacOS/CHC_Thesis ./models/scene_tiny/scene_tiny.obj    4   td  22 22 32         1   0.0  scene_tiny_TD__4
+#./CHC_Thesis.app/Contents/MacOS/CHC_Thesis ./models/scene_tiny/scene_tiny.obj    8   td  22 22 32         1   0.0  scene_tiny_TD__8
+
+./CHC_Thesis.app/Contents/MacOS/CHC_Thesis ./models/scene_tiny/scene_tiny.obj    2   bu  22 22 32         1   0.0  scene_tiny_BU__2
+./CHC_Thesis.app/Contents/MacOS/CHC_Thesis ./models/scene_tiny/scene_tiny.obj    4   bu  22 22 32         1   0.0  scene_tiny_BU__4
+./CHC_Thesis.app/Contents/MacOS/CHC_Thesis ./models/scene_tiny/scene_tiny.obj    8   bu  22 22 32         1   0.0  scene_tiny_BU__8
+
+
+
+#./CHC_Thesis.app/Contents/MacOS/CHC_Thesis ./models/scene_small/scene_small.obj    2   td  22 22 32         1   0.0  scene_small_TD__2
+#./CHC_Thesis.app/Contents/MacOS/CHC_Thesis ./models/scene_small/scene_small.obj    4   td  22 22 32         1   0.0  scene_small_TD__4
+#./CHC_Thesis.app/Contents/MacOS/CHC_Thesis ./models/scene_small/scene_small.obj    8   td  22 22 32         1   0.0  scene_small_TD__8
+
+#./CHC_Thesis.app/Contents/MacOS/CHC_Thesis ./models/scene_small/scene_small.obj    2   bu  22 22 32         1   0.0  scene_small_BU__2
+#./CHC_Thesis.app/Contents/MacOS/CHC_Thesis ./models/scene_small/scene_small.obj    4   bu  22 22 32         1   0.0  scene_small_BU__4
+#./CHC_Thesis.app/Contents/MacOS/CHC_Thesis ./models/scene_small/scene_small.obj    8   bu  22 22 32         1   0.0  scene_small_BU__8
+
+
+
+#./CHC_Thesis.app/Contents/MacOS/CHC_Thesis ./models/scene_med/scene_med.obj    2   td  22 22 32         1   0.0  scene_med_TD__2
+#./CHC_Thesis.app/Contents/MacOS/CHC_Thesis ./models/scene_med/scene_med.obj    4   td  22 22 32         1   0.0  scene_med_TD__4
+#./CHC_Thesis.app/Contents/MacOS/CHC_Thesis ./models/scene_med/scene_med.obj    8   td  22 22 32         1   0.0  scene_med_TD__8
+
+#./CHC_Thesis.app/Contents/MacOS/CHC_Thesis ./models/scene_med/scene_med.obj    2   bu  22 22 32         1   0.0  scene_med_BU__2
+#./CHC_Thesis.app/Contents/MacOS/CHC_Thesis ./models/scene_med/scene_med.obj    4   bu  22 22 32         1   0.0  scene_med_BU__4
+#./CHC_Thesis.app/Contents/MacOS/CHC_Thesis ./models/scene_med/scene_med.obj    8   bu  22 22 32         1   0.0  scene_med_BU__8
+
+
+
+#./CHC_Thesis.app/Contents/MacOS/CHC_Thesis ./models/scene_large/scene_large.obj    2   td  22 22 32         1   0.0  scene_large_TD__2
+#./CHC_Thesis.app/Contents/MacOS/CHC_Thesis ./models/scene_large/scene_large.obj    4   td  22 22 32         1   0.0  scene_large_TD__4
+#./CHC_Thesis.app/Contents/MacOS/CHC_Thesis ./models/scene_large/scene_large.obj    8   td  22 22 32         1   0.0  scene_large_TD__8
+
+#./CHC_Thesis.app/Contents/MacOS/CHC_Thesis ./models/scene_large/scene_large.obj    2   bu  22 22 32         1   0.0  scene_large_BU__2
+#./CHC_Thesis.app/Contents/MacOS/CHC_Thesis ./models/scene_large/scene_large.obj    4   bu  22 22 32         1   0.0  scene_large_BU__4
+#./CHC_Thesis.app/Contents/MacOS/CHC_Thesis ./models/scene_large/scene_large.obj    8   bu  22 22 32         1   0.0  scene_large_BU__8
+
+
+
+#./CHC_Thesis.app/Contents/MacOS/CHC_Thesis ./models/scene_huge/scene_huge.obj    2   td  22 22 32         1   0.0  scene_huge_TD__2
+#./CHC_Thesis.app/Contents/MacOS/CHC_Thesis ./models/scene_huge/scene_huge.obj    4   td  22 22 32         1   0.0  scene_huge_TD__4
+#./CHC_Thesis.app/Contents/MacOS/CHC_Thesis ./models/scene_huge/scene_huge.obj    8   td  22 22 32         1   0.0  scene_huge_TD__8
+
+#./CHC_Thesis.app/Contents/MacOS/CHC_Thesis ./models/scene_huge/scene_huge.obj    2   bu  22 22 32         1   0.0  scene_huge_BU__2
+#./CHC_Thesis.app/Contents/MacOS/CHC_Thesis ./models/scene_huge/scene_huge.obj    4   bu  22 22 32         1   0.0  scene_huge_BU__4
+#./CHC_Thesis.app/Contents/MacOS/CHC_Thesis ./models/scene_huge/scene_huge.obj    8   bu  22 22 32         1   0.0  scene_huge_BU__8
+
+
