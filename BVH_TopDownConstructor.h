@@ -1,3 +1,8 @@
+/*  
+Original source code borrowed from Matt Larsen; Univerisity of Oregon, 2014
+Adapted for use by Kevin Beick in his thesis project "Analyzing Performance of Bounding Volume Hierarchies for Ray Tracing" 
+*/
+
 
 float getCosts(float box_costs[], int BF)
 {

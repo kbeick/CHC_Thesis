@@ -1,4 +1,7 @@
-/* Borrowed from Matthew Larsen; University of Oregon; 2014 */
+/*  
+Original source code borrowed from Matt Larsen; Univerisity of Oregon, 2014
+Adapted for use by Kevin Beick in his thesis project "Analyzing Performance of Bounding Volume Hierarchies for Ray Tracing" 
+*/
 
 #ifndef BVH_H
 #define BVH_H

@@ -24,6 +24,12 @@ CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING
 IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY
 OF SUCH DAMAGE.
 */
+/* 
+Extended by Kevin Beick for use in his Thesis Project "Analyzing Performance of Bounding Volume Hierarchies for Ray Tracing"
+Functions added by Kevin Beick are grouped below and are enclosed by long lines of '-'
+*/
+
+
 #ifndef _KDTREE_H_
 #define _KDTREE_H_
 
@@ -61,7 +67,12 @@ int kd_insert3f(struct kdtree *tree, float x, float y, float z, BVH_Node *data);
 
 
 
-/* Kevin Beick Added
+/* ----------------------------------------------------------------------------------------------------------------------- */
+/* ----------------------------------------------------------------------------------------------------------------------- */
+/* ----------------------------------------------------------------------------------------------------------------------- */
+/* Kevin Beick Added */
+
+/*
  * returns 'true' if data is represented in the tree, 'false' otherwise.
  */
 bool kd_contains(struct kdtree *tree, BVH_Node *data, struct kdnode **found);
@@ -69,6 +80,11 @@ bool kd_contains_helper(struct kdnode *node, BVH_Node *data, struct kdnode **fou
 
 BVH_Node* kd_find_best_match(struct kdtree *tree, BVH_Node *A);
 BVH_Node* kd_find_best_match_with_sq(struct kdtree *tree, BVH_Node *A, double *dist_sq);
+/* ----------------------------------------------------------------------------------------------------------------------- */
+/* ----------------------------------------------------------------------------------------------------------------------- */
+/* ----------------------------------------------------------------------------------------------------------------------- */
+
+
 
 
 /* Find the nearest node from a given point.

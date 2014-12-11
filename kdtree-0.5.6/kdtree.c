@@ -25,6 +25,13 @@ IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY
 OF SUCH DAMAGE.
 */
 /* single nearest neighbor search written by Tamas Nepusz <tamas@cs.rhul.ac.uk> */
+
+/* 
+Extended by Kevin Beick for use in his Thesis Project "Analyzing Performance of Bounding Volume Hierarchies for Ray Tracing"
+Functions added by Kevin Beick are grouped below and are enclosed by long lines of '-'
+*/
+
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -263,7 +270,12 @@ int kd_insert3f(struct kdtree *tree, float x, float y, float z, BVH_Node *data)
 
 
 
-/* Kevin Beick Added
+/* ----------------------------------------------------------------------------------------------------------------------- */
+/* ----------------------------------------------------------------------------------------------------------------------- */
+/* ----------------------------------------------------------------------------------------------------------------------- */
+/* Kevin Beick Added */
+
+/*
  * returns 'true' if data is represented in the tree, 'false' otherwise.
  */
 bool kd_contains(struct kdtree *tree, BVH_Node *data, struct kdnode **found)
@@ -312,7 +324,9 @@ BVH_Node* kd_find_best_match_with_sq(struct kdtree *tree, BVH_Node *A, double *d
     kd_res_free(set);
     return C;
 }
-
+/* ----------------------------------------------------------------------------------------------------------------------- */
+/* ----------------------------------------------------------------------------------------------------------------------- */
+/* ----------------------------------------------------------------------------------------------------------------------- */
 
 
 
