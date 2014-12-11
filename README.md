@@ -9,7 +9,7 @@ Some code herein is borrowed from or inspired by other implementations, as noted
 
 OVERVIEW
 ==========
-This project is an implemenation of the Ray Tracing algorithm that uses Bounding Volume Hierarchies. BVHs accelerate ray tracing, in partiular its intersection detection process. This code loads data from .obj files and stores the model as its constituent geometric objects. These objects inserted into a BVH and then the ray tracing algorithm uses the BVH to efficiently generate a 3D rendering of the model.
+This project is an implemenation of the Ray Tracing algorithm used to render 3D graphics. My algorithm uses Bounding Volume Hierarchies, data structures that accelerate ray tracing, in partiular its intersection detection process. This code loads data from .obj files and stores the model as its constituent geometric objects. These objects are inserted into a BVH and then the ray tracing algorithm uses the BVH to efficiently generate a 3D rendering of the model via ray tracing (.png file).
 
 The code allows for some customization to the BVH and ray tracing process, letting the user define some of the parameters:
 - construction method used to generate BVH (top-down or bottom-up)
@@ -22,6 +22,8 @@ Also included is support to record/stream various metrics of the BVH's performan
 - Build Time
 - Avg traversal time per pixel
 - Avg number of nodes traverse per pixel
+
+The goal of this codebase - and my project as a whole - was to gain an understanding of how a few of the most significant BVH design decisions affect a its performance during Ray Tracing.
 
 
 
